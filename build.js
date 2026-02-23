@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const matter = require('gray-matter')
 const MarkdownIt = require('markdown-it')
+const site = require('./site.config.js')
 
 const md = new MarkdownIt({ html: true, typographer: true })
 
@@ -228,6 +229,7 @@ function buildFiction() {
 
   const fictionHtml = fictionIndexTemplate
     .replace('{{stories}}', storyItems)
+    .replace('{{site_title}}', site.title)
     .replace(/\{\{root\}\}/g, '.')
 
   fs.writeFileSync(path.join(DIST, 'fiction.html'), fictionHtml)
@@ -281,6 +283,7 @@ function buildDecks() {
 
   const html = indexTemplate
     .replace('{{decks}}', items)
+    .replace('{{site_title}}', site.title)
     .replace(/\{\{root\}\}/g, '.')
 
   fs.writeFileSync(path.join(DIST, 'decks.html'), html)
@@ -300,6 +303,7 @@ function buildIndex(posts) {
 
   const html = template
     .replace('{{posts}}', items)
+    .replace(/\{\{site_title\}\}/g, site.title)
     .replace(/\{\{root\}\}/g, '.')
 
   fs.writeFileSync(path.join(DIST, 'index.html'), html)

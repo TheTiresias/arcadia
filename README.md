@@ -17,6 +17,25 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 
 ---
 
+## Using This as a Template
+
+1. **Set your site title** — edit `site.config.js`:
+   ```js
+   module.exports = {
+     title: 'Your Site Name',
+     description: 'A short description.',
+   }
+   ```
+
+2. **Remove the example content** — the repo ships with a sample post, story, and deck so the build works out of the box. Clear them when you're ready to start fresh:
+   ```
+   npm run clear:examples
+   ```
+
+3. **Start writing** — use the `new:post`, `new:story`, and `new:deck` commands to scaffold your content.
+
+---
+
 ## Content Types
 
 ### Blog Posts
@@ -96,6 +115,7 @@ A `---` in posts and fiction chapters becomes a `<section>` break, which is the 
 |---|---|
 | `npm run build` | Build the full site to `dist/` |
 | `npm run serve` | Serve `dist/` locally at `http://localhost:3000` |
+| `npm run clear:examples` | Remove the bundled example content |
 | `npm run new:post -- "Title"` | Scaffold a new blog post |
 | `npm run new:story -- "Title"` | Scaffold a new fiction story with a first chapter |
 | `npm run new:deck -- "Title"` | Scaffold a new slide deck |

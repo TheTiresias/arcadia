@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node build.js",
     "serve": "node scripts/serve.js",
+    "clear:examples": "node scripts/clear-examples.js",
     "new:post": "node scripts/new-post.js",
     "new:story": "node scripts/new-story.js",
     "new:deck": "node scripts/new-deck.js"
