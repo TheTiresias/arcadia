@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="{{root}}/tufte.css"/>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; }
+
+    .deck-header {
+      padding: 0.5rem 2rem;
+      border-bottom: 1px solid #ccc;
+      font-family: et-book, Palatino, serif;
+      font-size: 0.9rem;
+    }
+
+    .deck { flex: 1; position: relative; overflow: hidden; }
+
+    .slide {
+      display: none;
+      position: absolute;
+      inset: 0;
+      padding: 4rem 10%;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .slide.active { display: block; }
+
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 2rem;
+      border-top: 1px solid #ccc;
+      font-family: et-book, Palatino, serif;
+      font-size: 0.9rem;
+    }
+
+    .slide-footer button {
+      background: none;
+      border: none;
+      font-family: et-book, Palatino, serif;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0 0.5rem;
+    }
+
+    .slide-footer button:disabled { color: #ccc; cursor: default; }
+  </style>
+</head>
+<body{{body_style}}>
+<div class="deck-header"><a href="{{root}}/index.html">← Home</a></div>
+<div class="deck">
+{{slides}}
+</div>
+<div class="slide-footer">
+  <button id="prev">←</button>
+  <span id="counter"></span>
+  <button id="next">→</button>
+</div>
+<script>
+  const slides = document.querySelectorAll('.slide')
+  let current = 0
+
+  function show(n) {
+    slides[current].classList.remove('active')
+    current = Math.max(0, Math.min(n, slides.length - 1))
+    slides[current].classList.add('active')
+    document.getElementById('counter').textContent = (current + 1) + ' / ' + slides.length
+    document.getElementById('prev').disabled = current === 0
+    document.getElementById('next').disabled = current === slides.length - 1
+  }
+
+  document.getElementById('prev').addEventListener('click', () => show(current - 1))
+  document.getElementById('next').addEventListener('click', () => show(current + 1))
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1) }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1) }
+  })
+
+  show(0)
+</script>
+</body>
+</html>
