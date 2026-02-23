@@ -95,6 +95,7 @@ A `---` in posts and fiction chapters becomes a `<section>` break, which is the 
 | Command | Description |
 |---|---|
 | `npm run build` | Build the full site to `dist/` |
+| `npm run serve` | Serve `dist/` locally at `http://localhost:3000` |
 | `npm run new:post -- "Title"` | Scaffold a new blog post |
 | `npm run new:story -- "Title"` | Scaffold a new fiction story with a first chapter |
 | `npm run new:deck -- "Title"` | Scaffold a new slide deck |
