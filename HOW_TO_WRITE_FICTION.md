@@ -20,6 +20,7 @@ title: Your Story Title
 description: A one-line description shown on the fiction index.
 background_color: "#1a1a2e"
 font_color: "#e0e0e0"
+tags: [fantasy, short-story]
 ---
 ```
 
@@ -29,6 +30,9 @@ font_color: "#e0e0e0"
 | `description`      | No       | Shown on the main fiction index next to the story link       |
 | `background_color` | No       | CSS color value applied to `<body>` on all chapter and ToC pages |
 | `font_color`       | No       | CSS color value applied to `<body>` on all chapter and ToC pages |
+| `tags`             | No       | List (or comma-separated string) of tags; generates tag pages and shows tag links on the ToC page |
+
+Tags belong to the story, not individual chapters — set them in `story.md` only.
 
 Colors apply consistently across the entire story — all chapters and the table of contents share the same palette.
 

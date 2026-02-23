@@ -92,6 +92,22 @@ function formatDate(raw) {
   return String(raw)
 }
 
+function normalizeTags(raw) {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw.map(String).map(s => s.trim()).filter(Boolean)
+  return String(raw).split(',').map(s => s.trim()).filter(Boolean)
+}
+
+function tagSlug(tag) {
+  return tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
+function renderTagPills(tags, root, inline) {
+  if (!tags.length) return ''
+  const links = tags.map(t => `<a href="${root}/tags/${tagSlug(t)}.html">${t}</a>`).join(' · ')
+  return inline ? `&ensp;·&ensp;${links}` : `<p class="tags">Tags: ${links}</p>`
+}
+
 // Wrap content in <section> blocks, splitting on <hr>
 function sectionWrap(html) {
   const parts = html.split(/<hr\s*\/?>/)
@@ -111,16 +127,18 @@ function buildPosts() {
     const bodyHtml = sectionWrap(md.render(content, env))
     const slug = file.replace(/\.md$/, '')
     const date = formatDate(data.date)
+    const tags = normalizeTags(data.tags)
 
     const rendered = template
       .replace(/\{\{title\}\}/g, data.title || slug)
       .replace('{{subtitle}}', data.subtitle ? `<p class="subtitle">${data.subtitle}</p>` : '')
       .replace('{{date}}', date ? `<p class="date">${date}</p>` : '')
+      .replace('{{tags}}', renderTagPills(tags, '..'))
       .replace('{{content}}', bodyHtml)
       .replace(/\{\{root\}\}/g, '..')
 
     fs.writeFileSync(path.join(DIST, 'posts', `${slug}.html`), rendered)
-    posts.push({ slug, title: data.title || slug, date })
+    posts.push({ slug, title: data.title || slug, date, tags })
     console.log(`  built posts/${slug}.html`)
   }
 
@@ -150,6 +168,7 @@ function buildFiction() {
     const storyMeta = fs.existsSync(storyMetaPath)
       ? matter(fs.readFileSync(storyMetaPath, 'utf8')).data
       : { title: storySlug }
+    const storyTags = normalizeTags(storyMeta.tags)
 
     const bodyStyle = (storyMeta.background_color || storyMeta.font_color)
       ? ` style="${storyMeta.background_color ? `background-color:${storyMeta.background_color};` : ''}${storyMeta.font_color ? `color:${storyMeta.font_color};` : ''}"`
@@ -204,6 +223,7 @@ function buildFiction() {
     const tocRendered = tocTemplate
       .replace(/\{\{title\}\}/g, storyMeta.title || storySlug)
       .replace('{{description}}', storyMeta.description ? `<p>${storyMeta.description}</p>` : '')
+      .replace('{{tags}}', renderTagPills(storyTags, '../..'))
       .replace('{{chapters}}', items)
       .replace('{{body_style}}', bodyStyle)
       .replace(/\{\{root\}\}/g, '../..')
@@ -215,7 +235,8 @@ function buildFiction() {
       slug: storySlug,
       title: storyMeta.title || storySlug,
       description: storyMeta.description || '',
-      chapterCount: chapters.length
+      chapterCount: chapters.length,
+      tags: storyTags
     })
   }
 
@@ -252,6 +273,7 @@ function buildDecks() {
     const raw = fs.readFileSync(path.join(decksSrc, file), 'utf8')
     const { data, content } = matter(raw)
     const slug = file.replace(/\.md$/, '')
+    const tags = normalizeTags(data.tags)
 
     const slideContents = content.split(/\n---\n/)
     const slidesHtml = slideContents
@@ -267,12 +289,13 @@ function buildDecks() {
     const rendered = template
       .replace(/\{\{title\}\}/g, data.title || slug)
       .replace('{{slides}}', slidesHtml)
+      .replace('{{tags}}', renderTagPills(tags, '..', true))
       .replace('{{body_style}}', bodyStyle)
       .replace(/\{\{root\}\}/g, '..')
 
     fs.writeFileSync(path.join(DIST, 'decks', `${slug}.html`), rendered)
     console.log(`  built decks/${slug}.html`)
-    decks.push({ slug, title: data.title || slug })
+    decks.push({ slug, title: data.title || slug, tags })
   }
 
   // Build decks index
@@ -290,6 +313,82 @@ function buildDecks() {
   console.log('  built decks.html')
 
   return decks
+}
+
+function buildTags(posts, stories, decks) {
+  ensureDir(path.join(DIST, 'tags'))
+  const tagPageTemplate = readTemplate('tag-page.html')
+  const tagsIndexTemplate = readTemplate('tags-index.html')
+
+  const tagMap = {}
+
+  function addItem(rawTag, type, item) {
+    const slug = tagSlug(rawTag)
+    if (!tagMap[slug]) tagMap[slug] = { name: rawTag, posts: [], stories: [], decks: [] }
+    tagMap[slug][type].push(item)
+  }
+
+  for (const post of posts) {
+    for (const tag of (post.tags || [])) addItem(tag, 'posts', post)
+  }
+  for (const story of stories) {
+    for (const tag of (story.tags || [])) addItem(tag, 'stories', story)
+  }
+  for (const deck of decks) {
+    for (const tag of (deck.tags || [])) addItem(tag, 'decks', deck)
+  }
+
+  for (const [slug, tagData] of Object.entries(tagMap)) {
+    let sections = ''
+
+    if (tagData.posts.length) {
+      const items = tagData.posts.map(p =>
+        `      <li><a href="../posts/${p.slug}.html">${p.title}</a>` +
+        (p.date ? ` <span class="date">${p.date}</span>` : '') + `</li>`
+      ).join('\n')
+      sections += `    <h2>Posts</h2>\n    <ul>\n${items}\n    </ul>\n`
+    }
+    if (tagData.stories.length) {
+      const items = tagData.stories.map(s =>
+        `      <li><a href="../fiction/${s.slug}/index.html">${s.title}</a></li>`
+      ).join('\n')
+      sections += `    <h2>Fiction</h2>\n    <ul>\n${items}\n    </ul>\n`
+    }
+    if (tagData.decks.length) {
+      const items = tagData.decks.map(d =>
+        `      <li><a href="../decks/${d.slug}.html">${d.title}</a></li>`
+      ).join('\n')
+      sections += `    <h2>Decks</h2>\n    <ul>\n${items}\n    </ul>\n`
+    }
+
+    const rendered = tagPageTemplate
+      .replace(/\{\{tag\}\}/g, tagData.name)
+      .replace('{{items}}', sections.trimEnd())
+      .replace(/\{\{site_title\}\}/g, site.title)
+      .replace(/\{\{root\}\}/g, '..')
+
+    fs.writeFileSync(path.join(DIST, 'tags', `${slug}.html`), rendered)
+    console.log(`  built tags/${slug}.html`)
+  }
+
+  const sorted = Object.entries(tagMap).sort(([slugA, a], [slugB, b]) => {
+    const countA = a.posts.length + a.stories.length + a.decks.length
+    const countB = b.posts.length + b.stories.length + b.decks.length
+    return countB - countA || slugA.localeCompare(slugB)
+  })
+
+  const tagItems = sorted.map(([slug, tagData]) => {
+    const count = tagData.posts.length + tagData.stories.length + tagData.decks.length
+    return `      <li><a href="tags/${slug}.html">${tagData.name}</a> <span class="date">(${count})</span></li>`
+  }).join('\n')
+
+  const html = tagsIndexTemplate
+    .replace('{{tags}}', tagItems)
+    .replace(/\{\{site_title\}\}/g, site.title)
+    .replace(/\{\{root\}\}/g, '.')
+
+  fs.writeFileSync(path.join(DIST, 'tags.html'), html)
+  console.log('  built tags.html')
 }
 
 function buildIndex(posts) {
@@ -321,7 +420,8 @@ console.log('Building...')
 ensureDir(DIST)
 copyAssets()
 const posts = buildPosts()
-buildFiction()
-buildDecks()
+const stories = buildFiction()
+const decks = buildDecks()
 buildIndex(posts)
+buildTags(posts, stories, decks)
 console.log('Done.')

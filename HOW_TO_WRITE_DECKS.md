@@ -15,6 +15,7 @@ npm run new:deck -- "Your Deck Title"
 title: Your Deck Title
 background_color: "#1a1a2e"
 font_color: "#e0e0e0"
+tags: [talk, research]
 ---
 ```
 
@@ -23,6 +24,7 @@ font_color: "#e0e0e0"
 | `title`            | Yes      | Displayed in the browser tab and on the decks index      |
 | `background_color` | No       | CSS color value applied to `<body>` for the entire deck  |
 | `font_color`       | No       | CSS color value applied to `<body>` for the entire deck  |
+| `tags`             | No       | List (or comma-separated string) of tags; generates tag pages and shows tag links in the deck header |
 
 ---
 
