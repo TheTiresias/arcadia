@@ -109,6 +109,27 @@ A `---` in posts and fiction chapters becomes a `<section>` break, which is the 
 
 ---
 
+## Tags
+
+Any content type can be tagged by adding a `tags` field to its frontmatter:
+
+```yaml
+tags: [essay, climate, fiction]
+```
+
+Tags can also be written as a comma-separated string: `tags: essay, climate`.
+
+The build generates:
+
+- `tags/{tag}.html` — all content with that tag, grouped by type
+- `tags.html` — master index of every tag with item counts
+
+Tag links appear on post pages, fiction story ToC pages, and in the deck header. The home page links to `tags.html`.
+
+Fiction tags belong to the story, not individual chapters — set them in `story.md`.
+
+---
+
 ## Scripts
 
 | Command | Description |

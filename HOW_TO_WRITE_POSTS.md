@@ -15,6 +15,7 @@ npm run new:post -- "Your Post Title"
 title: Your Post Title
 date: 2026-02-23
 subtitle: An optional line shown below the title
+tags: [essay, climate]
 ---
 ```
 
@@ -23,6 +24,7 @@ subtitle: An optional line shown below the title
 | `title`    | Yes      | Displayed as the page `<h1>`       |
 | `date`     | Yes      | ISO format (`YYYY-MM-DD`); used for chronological sorting on the index |
 | `subtitle` | No       | Rendered as a smaller line below the title |
+| `tags`     | No       | List (or comma-separated string) of tags; generates tag pages and shows tag links on the post |
 
 ---
 
