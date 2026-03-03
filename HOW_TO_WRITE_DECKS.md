@@ -1,9 +1,9 @@
 # How to Write Decks
 
-Slide decks live in `src/decks/`. Each file is a single deck. Create one with:
+Slide decks live in `example/decks/`. Each file is a single deck. Create one with:
 
 ```
-npm run new:deck -- "Your Deck Title"
+arcadia new deck <slug>
 ```
 
 ---
@@ -78,9 +78,9 @@ Standard markdown works on every slide: headings, lists, bold, italic, inline co
 ```markdown
 ## A Code Slide
 
-\```js
-function greet(name) {
-  return `Hello, ${name}`
+\```rust
+fn greet(name: &str) -> String {
+    format!("Hello, {name}")
 }
 \```
 ```
@@ -94,9 +94,9 @@ function greet(name) {
 `background_color` and `font_color` accept any valid CSS color value:
 
 ```yaml
-background_color: "#0d1117"   # hex
+background_color: "#0d1117"       # hex
 font_color: "rgb(230, 230, 230)"  # rgb
-font_color: "ivory"           # named color
+font_color: "ivory"               # named color
 ```
 
 The colors are applied to the `<body>` element, so they cover the full viewport including the header and navigation bar.

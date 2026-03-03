@@ -1,12 +1,12 @@
 # How to Write Fiction
 
-Fiction lives in `src/fiction/`. Each story is a directory containing a metadata file and one markdown file per chapter. Create a new story with:
+Fiction lives in `example/fiction/`. Each story is a directory containing a metadata file and one markdown file per chapter. Create a new story with:
 
 ```
-npm run new:story -- "Your Story Title"
+arcadia new fiction <slug>
 ```
 
-This creates `src/fiction/{slug}/story.md` and a starter `chapter-01.md`.
+This creates `example/fiction/{slug}/story.md` and a starter `chapter-01.md`.
 
 ---
 

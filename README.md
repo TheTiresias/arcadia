@@ -2,15 +2,15 @@
 
 A Tufte-style static site generator for writing. Supports blog posts, long-form fiction, and slide decks — all from plain markdown.
 
-Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [markdown-it](https://github.com/markdown-it/markdown-it), and [gray-matter](https://github.com/jonschmoll/gray-matter). No framework, no bundler — just a Node.js build script.
+Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark), and [toml](https://github.com/toml-rs/toml). No framework, no bundler — just a Rust binary.
 
 ---
 
 ## Getting Started
 
 ```
-npm install
-npm run build
+cargo install --path .
+arcadia build
 ```
 
 Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
@@ -19,20 +19,14 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 
 ## Using This as a Template
 
-1. **Set your site title** — edit `site.config.js`:
-   ```js
-   module.exports = {
-     title: 'Your Site Name',
-     description: 'A short description.',
-   }
+1. **Set your site title** — create `arcadia.toml` in the project root:
+   ```toml
+   title = "Your Site Name"
    ```
 
-2. **Remove the example content** — the repo ships with a sample post, story, and deck so the build works out of the box. Clear them when you're ready to start fresh:
-   ```
-   npm run clear:examples
-   ```
+2. **Remove the example content** — the repo ships with a sample post, story, and deck. Delete the files from `src/posts/`, `src/fiction/`, and `src/decks/` when you're ready to start fresh.
 
-3. **Start writing** — use the `new:post`, `new:story`, and `new:deck` commands to scaffold your content.
+3. **Start writing** — use `arcadia new` to scaffold content.
 
 ---
 
@@ -43,7 +37,7 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 Chronological writing. Lives in `src/posts/`.
 
 ```
-npm run new:post -- "Your Post Title"
+arcadia new post <slug>
 ```
 
 See [HOW_TO_WRITE_POSTS.md](HOW_TO_WRITE_POSTS.md) for full details.
@@ -53,7 +47,7 @@ See [HOW_TO_WRITE_POSTS.md](HOW_TO_WRITE_POSTS.md) for full details.
 Chapter-based long-form writing. Each story is a directory in `src/fiction/` containing a metadata file and one markdown file per chapter. Includes a generated table of contents and prev/next chapter navigation.
 
 ```
-npm run new:story -- "Your Story Title"
+arcadia new fiction <slug>
 ```
 
 See [HOW_TO_WRITE_FICTION.md](HOW_TO_WRITE_FICTION.md) for full details.
@@ -63,7 +57,7 @@ See [HOW_TO_WRITE_FICTION.md](HOW_TO_WRITE_FICTION.md) for full details.
 Presentation slides from markdown. Lives in `src/decks/`. Slides are separated by `---` and navigated with arrow keys or on-screen buttons.
 
 ```
-npm run new:deck -- "Your Deck Title"
+arcadia new deck <slug>
 ```
 
 See [HOW_TO_WRITE_DECKS.md](HOW_TO_WRITE_DECKS.md) for full details.
@@ -73,7 +67,7 @@ See [HOW_TO_WRITE_DECKS.md](HOW_TO_WRITE_DECKS.md) for full details.
 ## Project Structure
 
 ```
-src/
+example/
   posts/          ← blog post markdown files
   fiction/
     {story}/      ← one directory per story
@@ -81,9 +75,11 @@ src/
       *.md        ← chapter files
   decks/          ← slide deck markdown files
 
-templates/        ← HTML templates
-scripts/          ← scaffolding scripts
-build.js          ← build script
+resources/        ← static assets (place tufte.css here)
+images/           ← image files
+arcadia.toml      ← site config (title, content_dir, output_dir, port, …)
+
+src/              ← the build tool (Rust)
 dist/             ← generated output (not committed)
 ```
 
@@ -117,8 +113,6 @@ Any content type can be tagged by adding a `tags` field to its frontmatter:
 tags: [essay, climate, fiction]
 ```
 
-Tags can also be written as a comma-separated string: `tags: essay, climate`.
-
 The build generates:
 
 - `tags/{tag}.html` — all content with that tag, grouped by type
@@ -130,13 +124,14 @@ Fiction tags belong to the story, not individual chapters — set them in `story
 
 ---
 
-## Scripts
+## Commands
 
 | Command | Description |
 |---|---|
-| `npm run build` | Build the full site to `dist/` |
-| `npm run serve` | Serve `dist/` locally at `http://localhost:3000` |
-| `npm run clear:examples` | Remove the bundled example content |
-| `npm run new:post -- "Title"` | Scaffold a new blog post |
-| `npm run new:story -- "Title"` | Scaffold a new fiction story with a first chapter |
-| `npm run new:deck -- "Title"` | Scaffold a new slide deck |
+| `arcadia build` | Build the full site to `dist/` |
+| `arcadia build --drafts` | Build including draft posts |
+| `arcadia serve` | Build and serve locally at `http://localhost:3000` |
+| `arcadia new` | Scaffold a new site skeleton |
+| `arcadia new post <slug>` | Scaffold a new blog post |
+| `arcadia new fiction <slug>` | Scaffold a new fiction story with a first chapter |
+| `arcadia new deck <slug>` | Scaffold a new slide deck |

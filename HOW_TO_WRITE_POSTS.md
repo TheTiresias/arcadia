@@ -1,9 +1,9 @@
 # How to Write Posts
 
-Blog posts live in `src/posts/`. Each file is a single post. Create one with:
+Blog posts live in `example/posts/`. Each file is a single post. Create one with:
 
 ```
-npm run new:post -- "Your Post Title"
+arcadia new post <slug>
 ```
 
 ---
@@ -16,6 +16,7 @@ title: Your Post Title
 date: 2026-02-23
 subtitle: An optional line shown below the title
 tags: [essay, climate]
+draft: true
 ---
 ```
 
@@ -25,6 +26,7 @@ tags: [essay, climate]
 | `date`     | Yes      | ISO format (`YYYY-MM-DD`); used for chronological sorting on the index |
 | `subtitle` | No       | Rendered as a smaller line below the title |
 | `tags`     | No       | List (or comma-separated string) of tags; generates tag pages and shows tag links on the post |
+| `draft`    | No       | Set to `true` to exclude the post from normal builds; include with `arcadia build --drafts` |
 
 ---
 
@@ -77,7 +79,7 @@ This sentence has a margin note.>[Use these for commentary that doesn't interrup
 **Code** — both inline `` `code` `` and fenced blocks are supported and render in a monospace face that doesn't shout.
 
 ````markdown
-```js
-const site = 'arcadia'
+```rust
+let site = "arcadia";
 ```
 ````
