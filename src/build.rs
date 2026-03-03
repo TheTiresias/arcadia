@@ -1,0 +1,179 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::time::Instant;
+
+use anyhow::{Context, Result};
+
+use crate::config::SiteConfig;
+use crate::content::{decks, fiction, posts, tags};
+use crate::content::{DeckMeta, PostMeta, StoryMeta};
+use crate::templates;
+
+pub struct BuildConfig {
+    pub project_dir: PathBuf,
+    pub src_dir: PathBuf,
+    pub out_dir: PathBuf,
+    pub drafts: bool,
+    pub site_title: String,
+}
+
+impl BuildConfig {
+    pub fn load(
+        project_dir: PathBuf,
+        src_dir: PathBuf,
+        out_dir: PathBuf,
+        drafts: bool,
+        site_config: &SiteConfig,
+    ) -> Self {
+        let site_title = site_config.title.clone().unwrap_or_else(|| "Arcadia".to_owned());
+        BuildConfig { project_dir, src_dir, out_dir, drafts, site_title }
+    }
+}
+
+pub struct BuildSummary {
+    pub post_count: usize,
+    pub story_count: usize,
+    pub deck_count: usize,
+    pub elapsed_ms: u128,
+}
+
+pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
+    let start = Instant::now();
+    let src = config.src_dir.as_path();
+    let out = config.out_dir.as_path();
+    let drafts = config.drafts;
+
+    // 1. Create output dir
+    fs::create_dir_all(out).context("create output dir")?;
+
+    // 2. Run all three pipelines in parallel
+    let (post_result, (fiction_result, deck_result)) = rayon::join(
+        || posts::build(src, out, drafts),
+        || rayon::join(|| fiction::build(src, out), || decks::build(src, out)),
+    );
+
+    let post_metas = post_result.context("posts pipeline")?;
+    let story_metas = fiction_result.context("fiction pipeline")?;
+    let deck_metas = deck_result.context("decks pipeline")?;
+
+    // 3. Tags pipeline (needs all metas)
+    tags::build(out, &post_metas, &story_metas, &deck_metas, &config.site_title)
+        .context("tags pipeline")?;
+
+    // 4. Generate index / fiction / decks listing pages
+    generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title)?;
+
+    // 5. Copy resources/ → dist/resources/
+    copy_dir_if_exists(&config.project_dir.join("resources"), &out.join("resources"))?;
+
+    // 6. Copy images/ → dist/images/
+    copy_dir_if_exists(&config.project_dir.join("images"), &out.join("images"))?;
+
+    let elapsed_ms = start.elapsed().as_millis();
+    println!(
+        "Built {} posts, {} stories, {} decks in {}ms",
+        post_metas.len(),
+        story_metas.len(),
+        deck_metas.len(),
+        elapsed_ms
+    );
+
+    Ok(BuildSummary {
+        post_count: post_metas.len(),
+        story_count: story_metas.len(),
+        deck_count: deck_metas.len(),
+        elapsed_ms,
+    })
+}
+
+fn generate_index(
+    out_dir: &Path,
+    posts: &[PostMeta],
+    stories: &[StoryMeta],
+    decks: &[DeckMeta],
+    site_title: &str,
+) -> Result<()> {
+    // Home index
+    let posts_html: String = posts
+        .iter()
+        .map(|p| {
+            format!(
+                "      <li><a href=\"posts/{}.html\">{}</a> {}</li>",
+                p.slug, p.title, p.date
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let index_html = templates::render(
+        templates::INDEX,
+        &[("site_title", site_title), ("root", "."), ("posts", &posts_html)],
+    );
+    fs::write(out_dir.join("index.html"), index_html).context("write index.html")?;
+
+    // Fiction index
+    let stories_html: String = stories
+        .iter()
+        .map(|s| {
+            let ch_label = if s.chapter_count == 1 {
+                "1 chapter".to_owned()
+            } else {
+                format!("{} chapters", s.chapter_count)
+            };
+            format!(
+                "      <li><a href=\"fiction/{}/index.html\">{}</a> — {} ({})</li>",
+                s.slug, s.title, s.description, ch_label
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let fiction_html = templates::render(
+        templates::FICTION_INDEX,
+        &[("site_title", site_title), ("root", "."), ("stories", &stories_html)],
+    );
+    fs::write(out_dir.join("fiction.html"), fiction_html).context("write fiction.html")?;
+
+    // Decks index
+    let decks_html: String = decks
+        .iter()
+        .map(|d| {
+            format!(
+                "      <li><a href=\"decks/{}.html\">{}</a></li>",
+                d.slug, d.title
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let decks_page = templates::render(
+        templates::DECKS_INDEX,
+        &[("site_title", site_title), ("root", "."), ("decks", &decks_html)],
+    );
+    fs::write(out_dir.join("decks.html"), decks_page).context("write decks.html")?;
+
+    Ok(())
+}
+
+fn copy_dir_if_exists(src: &Path, dst: &Path) -> Result<()> {
+    if !src.exists() {
+        return Ok(());
+    }
+    copy_dir_recursive(src, dst)
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst).with_context(|| format!("create dir {:?}", dst))?;
+    for entry in fs::read_dir(src).with_context(|| format!("read dir {:?}", src))? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if src_path.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)
+                .with_context(|| format!("copy {:?} → {:?}", src_path, dst_path))?;
+        }
+    }
+    Ok(())
+}
