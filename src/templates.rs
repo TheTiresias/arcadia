@@ -1,14 +1,14 @@
 /// Embedded templates — baked into the binary at compile time.
 /// Each constant holds the raw HTML of one template.
-pub const INDEX: &str = include_str!("../templates/index.html");
-pub const POST: &str = include_str!("../templates/post.html");
-pub const FICTION_INDEX: &str = include_str!("../templates/fiction-index.html");
-pub const STORY_TOC: &str = include_str!("../templates/story-toc.html");
-pub const CHAPTER: &str = include_str!("../templates/chapter.html");
-pub const DECKS_INDEX: &str = include_str!("../templates/decks-index.html");
-pub const SLIDE_DECK: &str = include_str!("../templates/slide-deck.html");
-pub const TAG_PAGE: &str = include_str!("../templates/tag-page.html");
-pub const TAGS_INDEX: &str = include_str!("../templates/tags-index.html");
+pub const INDEX: &str = include_str!("../embed/index.html");
+pub const POST: &str = include_str!("../embed/post.html");
+pub const FICTION_INDEX: &str = include_str!("../embed/fiction-index.html");
+pub const STORY_TOC: &str = include_str!("../embed/story-toc.html");
+pub const CHAPTER: &str = include_str!("../embed/chapter.html");
+pub const DECKS_INDEX: &str = include_str!("../embed/decks-index.html");
+pub const SLIDE_DECK: &str = include_str!("../embed/slide-deck.html");
+pub const TAG_PAGE: &str = include_str!("../embed/tag-page.html");
+pub const TAGS_INDEX: &str = include_str!("../embed/tags-index.html");
 
 /// Substitute `{{key}}` placeholders in `template` with the corresponding
 /// values from `vars`. Keys are matched exactly; unrecognised placeholders

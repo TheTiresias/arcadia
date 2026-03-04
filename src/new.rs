@@ -3,21 +3,25 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
+const TUFTE_CSS: &str = include_str!("../embed/tufte.css");
+
 /// Scaffold a full site skeleton in `dir`.
 pub fn scaffold_site(dir: &Path) -> Result<()> {
-    for d in &["example/posts", "example/fiction", "example/decks", "resources", "images"] {
+    for d in &["example/posts", "example/fiction", "example/decks", "example/resources", "example/images"] {
         fs::create_dir_all(dir.join(d))
             .with_context(|| format!("create {}", d))?;
     }
 
     fs::write(dir.join("arcadia.toml"), "title = \"My Site\"\n").context("write arcadia.toml")?;
 
+    fs::write(dir.join("example/resources/tufte.css"), TUFTE_CSS)
+        .context("write example/resources/tufte.css")?;
+
     let sample = "---\ntitle: Hello, World\ndate: 2024-01-01\n---\n\nWelcome to your new Arcadia site.\n";
     fs::write(dir.join("example/posts/hello-world.md"), sample)
         .context("write sample post")?;
 
     println!("Scaffolded new site.");
-    println!("Place tufte.css in resources/ before building.");
     Ok(())
 }
 

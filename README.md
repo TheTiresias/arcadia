@@ -10,6 +10,7 @@ Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmar
 
 ```
 cargo install --path .
+arcadia new
 arcadia build
 ```
 
@@ -19,14 +20,16 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 
 ## Using This as a Template
 
-1. **Set your site title** — create `arcadia.toml` in the project root:
+1. **Scaffold a new site** — run `arcadia new` to create the directory structure, a sample post, and `example/resources/tufte.css`.
+
+2. **Set your site title** — edit `arcadia.toml` in the project root:
    ```toml
    title = "Your Site Name"
    ```
 
-2. **Remove the example content** — the repo ships with a sample post, story, and deck. Delete the files from `src/posts/`, `src/fiction/`, and `src/decks/` when you're ready to start fresh.
+3. **Remove the example content** — delete the sample files from `example/posts/`, `example/fiction/`, and `example/decks/` when you're ready to start fresh.
 
-3. **Start writing** — use `arcadia new` to scaffold content.
+4. **Start writing** — use `arcadia new post <slug>`, `arcadia new fiction <slug>`, or `arcadia new deck <slug>` to scaffold content.
 
 ---
 
@@ -34,7 +37,7 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 
 ### Blog Posts
 
-Chronological writing. Lives in `src/posts/`.
+Chronological writing. Lives in `example/posts/`.
 
 ```
 arcadia new post <slug>
@@ -44,7 +47,7 @@ See [HOW_TO_WRITE_POSTS.md](HOW_TO_WRITE_POSTS.md) for full details.
 
 ### Fiction
 
-Chapter-based long-form writing. Each story is a directory in `src/fiction/` containing a metadata file and one markdown file per chapter. Includes a generated table of contents and prev/next chapter navigation.
+Chapter-based long-form writing. Each story is a directory in `example/fiction/` containing a metadata file and one markdown file per chapter. Includes a generated table of contents and prev/next chapter navigation.
 
 ```
 arcadia new fiction <slug>
@@ -54,7 +57,7 @@ See [HOW_TO_WRITE_FICTION.md](HOW_TO_WRITE_FICTION.md) for full details.
 
 ### Slide Decks
 
-Presentation slides from markdown. Lives in `src/decks/`. Slides are separated by `---` and navigated with arrow keys or on-screen buttons.
+Presentation slides from markdown. Lives in `example/decks/`. Slides are separated by `---` and navigated with arrow keys or on-screen buttons.
 
 ```
 arcadia new deck <slug>
@@ -74,9 +77,9 @@ example/
       story.md    ← story metadata
       *.md        ← chapter files
   decks/          ← slide deck markdown files
+  resources/      ← static assets (tufte.css lives here)
+  images/         ← image files
 
-resources/        ← static assets (place tufte.css here)
-images/           ← image files
 arcadia.toml      ← site config (title, content_dir, output_dir, port, …)
 
 src/              ← the build tool (Rust)
@@ -135,3 +138,22 @@ Fiction tags belong to the story, not individual chapters — set them in `story
 | `arcadia new post <slug>` | Scaffold a new blog post |
 | `arcadia new fiction <slug>` | Scaffold a new fiction story with a first chapter |
 | `arcadia new deck <slug>` | Scaffold a new slide deck |
+
+---
+
+## Configuration
+
+All settings are optional. Create `arcadia.toml` in the project root to configure the site.
+
+```toml
+title       = "My Site"          # used in page <title> and headings
+description = "A site about …"  # not currently rendered, reserved for future use
+author      = "Your Name"        # not currently rendered, reserved for future use
+base_url    = "https://example.com"  # not currently rendered, reserved for future use
+
+content_dir = "example"          # where to look for posts/, fiction/, decks/, resources/, images/  (default: "example")
+output_dir  = "dist"             # where to write the built site                (default: "dist")
+port        = 3000               # port used by `arcadia serve`                 (default: 3000)
+```
+
+CLI flags (`--src`, `--output`, `--port`) take precedence over `arcadia.toml` when both are supplied.

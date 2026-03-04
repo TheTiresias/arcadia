@@ -64,10 +64,10 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title)?;
 
     // 5. Copy resources/ → dist/resources/
-    copy_dir_if_exists(&config.project_dir.join("resources"), &out.join("resources"))?;
+    copy_dir_if_exists(&src.join("resources"), &out.join("resources"))?;
 
     // 6. Copy images/ → dist/images/
-    copy_dir_if_exists(&config.project_dir.join("images"), &out.join("images"))?;
+    copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
 
     let elapsed_ms = start.elapsed().as_millis();
     println!(
