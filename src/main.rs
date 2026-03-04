@@ -2,6 +2,7 @@ mod build;
 mod config;
 mod content;
 mod feeds;
+mod sitemap;
 mod frontmatter;
 mod markdown;
 mod new;
@@ -41,6 +42,10 @@ enum Command {
         /// Include draft posts
         #[arg(long)]
         drafts: bool,
+
+        /// Base URL for sitemap and feed (overrides arcadia.toml)
+        #[arg(long)]
+        base_url: Option<String>,
     },
 
     /// Build and serve the site locally
@@ -109,7 +114,7 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
             }
         },
         Command::Eject => new::eject_templates(&PathBuf::from("."))?,
-        Command::Build { src, output, drafts } => {
+        Command::Build { src, output, drafts, base_url } => {
             let site_config = config::SiteConfig::load(std::path::Path::new("."))?;
             let src_dir = src
                 .or_else(|| site_config.content_dir.clone())
@@ -117,13 +122,16 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
             let out_dir = output
                 .or_else(|| site_config.output_dir.clone())
                 .unwrap_or_else(|| "dist".to_owned());
-            let config = build::BuildConfig::load(
+            let mut config = build::BuildConfig::load(
                 PathBuf::from("."),
                 PathBuf::from(src_dir),
                 PathBuf::from(out_dir),
                 drafts,
                 &site_config,
             );
+            if let Some(url) = base_url {
+                config.base_url = Some(url);
+            }
             build::build(&config)?;
         }
         Command::Serve { src, output, port, drafts } => {

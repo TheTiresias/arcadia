@@ -8,6 +8,7 @@ use crate::config::SiteConfig;
 use crate::content::{decks, fiction, posts, tags};
 use crate::content::{DeckMeta, PostMeta, StoryMeta};
 use crate::feeds;
+use crate::sitemap;
 use crate::templates::{self, Templates};
 
 #[derive(Clone)]
@@ -70,10 +71,12 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     // 4. Generate index / fiction / decks listing pages
     generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title, &tmpl)?;
 
-    // 5. RSS feed (only when base_url is configured)
+    // 5. RSS feed and sitemap (only when base_url is configured)
     if let Some(base_url) = &config.base_url {
         feeds::build(out, &post_metas, &config.site_title, base_url)
             .context("feeds pipeline")?;
+        sitemap::build(out, &post_metas, &story_metas, &deck_metas, base_url)
+            .context("sitemap pipeline")?;
     }
 
     // 6. Copy resources/ → dist/resources/
