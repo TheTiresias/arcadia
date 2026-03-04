@@ -24,7 +24,11 @@
 - Inline the resulting SVG directly into the HTML output (no client-side JS, no subprocess)
 - Propagate render errors with the diagram source in the message for easier debugging
 
-## 4. GitHub release workflow (`.github/workflows/release.yml`)
+## 4. Template engine — consider replacing with a library
+
+The current engine (plain substitution + `{{#if}}` conditionals) is intentionally minimal. If further templating features are needed — loops, filters, inheritance, whitespace control — replace it with a proper library rather than extending the hand-rolled engine. Good candidates in the Rust ecosystem: `minijinja` (Jinja2-compatible, small and embeddable) or `tera` (Django-style, more fully featured).
+
+## 5. GitHub release workflow (`.github/workflows/release.yml`)
 
 - Trigger on version tags (`v*`)
 - Build release binaries for three targets: `x86_64-unknown-linux-gnu`, `x86_64-apple-darwin`, `aarch64-apple-darwin`
