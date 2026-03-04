@@ -52,6 +52,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
             str_field(&story_meta, "title").unwrap_or_else(|| "Untitled".to_owned());
         let description = str_field(&story_meta, "description").unwrap_or_default();
         let tags = tags_field(&story_meta);
+        let bg_color = str_field(&story_meta, "background_color");
+        let fg_color = str_field(&story_meta, "font_color");
         let bstyle = body_style(&story_meta);
 
         // Parse chapter files
@@ -126,7 +128,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
                 .map(|s| format!("<p class=\"subtitle\">{}</p>", s))
                 .unwrap_or_default();
             let content = markdown::section_wrap(
-                &markdown::render(&ch.body)
+                &markdown::render(&ch.body, bg_color.as_deref(), fg_color.as_deref())
                     .with_context(|| format!("render chapter {:?}", ch.slug))?,
             );
 

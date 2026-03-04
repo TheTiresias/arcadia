@@ -32,6 +32,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
 
         let title = str_field(&meta, "title").unwrap_or_else(|| "Untitled".to_owned());
         let tags = tags_field(&meta);
+        let bg_color = str_field(&meta, "background_color");
+        let fg_color = str_field(&meta, "font_color");
         let bstyle = body_style(&meta);
 
         let slug = path
@@ -43,7 +45,10 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
         let slides_html: String = markdown::split_slides(body)
             .iter()
             .map(|slide| -> anyhow::Result<String> {
-                Ok(format!("<div class=\"slide\">{}</div>", markdown::render(slide)?))
+                Ok(format!(
+                    "<div class=\"slide\">{}</div>",
+                    markdown::render(slide, bg_color.as_deref(), fg_color.as_deref())?
+                ))
             })
             .collect::<anyhow::Result<Vec<_>>>()
             .with_context(|| format!("render slides in {:?}", path))?
