@@ -1,5 +1,8 @@
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
+
+use regex::Regex;
 
 /// Embedded templates — baked into the binary at compile time.
 /// Each constant holds the raw HTML of one template.
@@ -47,11 +50,29 @@ impl Templates {
     }
 }
 
-/// Substitute `{{key}}` placeholders in `template` with the corresponding
-/// values from `vars`. Keys are matched exactly; unrecognised placeholders
-/// are left unchanged so partial renders are safe to inspect.
+/// Render a template against `vars` in two phases:
+///
+/// 1. **Conditionals** — `{{#if key}}...{{/if}}` blocks are kept (tags
+///    stripped) when `key` maps to a non-empty value, and removed entirely
+///    otherwise. Nesting is not supported.
+/// 2. **Substitution** — `{{key}}` placeholders are replaced with their
+///    values. Unrecognised placeholders are left as-is.
 pub fn render(template: &str, vars: &[(&str, &str)]) -> String {
-    let mut out = template.to_owned();
+    static IF_RE: OnceLock<Regex> = OnceLock::new();
+    let re = IF_RE.get_or_init(|| {
+        Regex::new(r"(?s)\{\{#if ([A-Za-z0-9_]+)\}\}(.*?)\{\{/if\}\}").unwrap()
+    });
+
+    // Phase 1: conditionals.
+    let after_ifs = re.replace_all(template, |caps: &regex::Captures| {
+        let key = &caps[1];
+        let body = &caps[2];
+        let truthy = vars.iter().any(|(k, v)| *k == key && !v.is_empty());
+        if truthy { body.to_owned() } else { String::new() }
+    });
+
+    // Phase 2: substitution.
+    let mut out = after_ifs.into_owned();
     for (key, value) in vars {
         let placeholder = ["{{", key, "}}"].concat();
         out = out.replace(&placeholder, value);
@@ -97,6 +118,46 @@ mod tests {
     #[test]
     fn empty_value_replaces_placeholder() {
         assert_eq!(render("before{{x}}after", &[("x", "")]), "beforeafter");
+    }
+
+    #[test]
+    fn if_block_kept_when_truthy() {
+        assert_eq!(
+            render("{{#if x}}hello{{/if}}", &[("x", "1")]),
+            "hello"
+        );
+    }
+
+    #[test]
+    fn if_block_removed_when_empty() {
+        assert_eq!(
+            render("before{{#if x}}hello{{/if}}after", &[("x", "")]),
+            "beforeafter"
+        );
+    }
+
+    #[test]
+    fn if_block_removed_when_absent() {
+        assert_eq!(
+            render("before{{#if x}}hello{{/if}}after", &[]),
+            "beforeafter"
+        );
+    }
+
+    #[test]
+    fn if_block_with_substitution_inside() {
+        assert_eq!(
+            render("{{#if show}}{{val}}{{/if}}", &[("show", "1"), ("val", "hi")]),
+            "hi"
+        );
+    }
+
+    #[test]
+    fn if_block_multiline() {
+        assert_eq!(
+            render("a\n{{#if x}}\nb\n{{/if}}\nc", &[("x", "yes")]),
+            "a\n\nb\n\nc"
+        );
     }
 
     #[test]

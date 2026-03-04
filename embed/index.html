@@ -15,8 +15,8 @@
     </ul>
   </section>
   <section>
-    <p><a href="fiction.html">Fiction →</a></p>
-    <p><a href="decks.html">Decks →</a></p>
+    {{#if has_fiction}}<p><a href="fiction.html">Fiction →</a></p>{{/if}}
+    {{#if has_decks}}<p><a href="decks.html">Decks →</a></p>{{/if}}
     <p><a href="tags.html">Tags →</a></p>
   </section>
 </article>

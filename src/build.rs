@@ -112,7 +112,13 @@ fn generate_index(
 
     let index_html = templates::render(
         &tmpl.index,
-        &[("site_title", site_title), ("root", "."), ("posts", &posts_html)],
+        &[
+            ("site_title", site_title),
+            ("root", "."),
+            ("posts", &posts_html),
+            ("has_fiction", if stories.is_empty() { "" } else { "1" }),
+            ("has_decks", if decks.is_empty() { "" } else { "1" }),
+        ],
     );
     fs::write(out_dir.join("index.html"), index_html).context("write index.html")?;
 

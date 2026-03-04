@@ -20,9 +20,21 @@ At the start of every build Arcadia checks `embed/<filename>` in your project di
 
 ---
 
-## Substitution syntax
+## Template syntax
 
-Placeholders take the form `{{key}}`. Substitution is plain string replacement — there are no conditionals, loops, or filters in the template language itself. Unknown placeholders are left as-is in the output, which makes partial overrides safe to inspect.
+### Substitution
+
+Placeholders take the form `{{key}}`. Substitution is plain string replacement. Unknown placeholders are left as-is in the output, which makes partial overrides safe to inspect.
+
+### Conditionals
+
+```html
+{{#if key}}...{{/if}}
+```
+
+The block is kept (with the tags themselves stripped) when `key` maps to a non-empty value, and removed entirely otherwise. The body can span multiple lines and contain other `{{key}}` placeholders, which are substituted normally after the conditional pass.
+
+Nesting `{{#if}}` blocks is not supported.
 
 ---
 
@@ -49,6 +61,8 @@ Output path: `index.html`
 | `{{site_title}}` | Plain string | Used in `<title>` and the page `<h1>`. |
 | `{{root}}` | Plain string | Always `.`. |
 | `{{posts}}` | Pre-rendered HTML | One `<li>` per post, linking to `posts/{slug}.html`, sorted newest-first. |
+| `{{has_fiction}}` | Flag | Non-empty when the site has at least one story; empty otherwise. Intended for use with `{{#if has_fiction}}`. |
+| `{{has_decks}}` | Flag | Non-empty when the site has at least one deck; empty otherwise. Intended for use with `{{#if has_decks}}`. |
 
 ---
 
