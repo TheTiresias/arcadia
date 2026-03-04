@@ -12,8 +12,11 @@ pub fn preprocess(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<Str
         Regex::new(r"(?m)^```mermaid\n([\s\S]*?)\n```").unwrap()
     });
 
+    let background = bg.unwrap_or("#fffff8");
+    let text       = fg.unwrap_or("#111111");
+
     let options = RenderOptions {
-        theme: tufte_theme(bg, fg),
+        theme: tufte_theme(background, text),
         layout: LayoutConfig::default(),
     };
 
@@ -28,6 +31,12 @@ pub fn preprocess(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<Str
 
         let svg = mermaid_rs_renderer::render_with_options(source, options.clone())
             .map_err(|e| anyhow!("mermaid render failed for diagram {:?}: {}", source, e))?;
+
+        let svg = if !is_dark(background) {
+            inject_dark_style(&svg, background, text)
+        } else {
+            svg
+        };
 
         out.push_str(&svg);
         out.push('\n');
@@ -48,9 +57,7 @@ pub fn preprocess(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<Str
 /// derived by lightening the background, so the diagram shares the page
 /// palette. `primary_text_color` is set to `fg` so text inside nodes remains
 /// readable. Non-hex `bg` values fall back to the light theme.
-fn tufte_theme(bg: Option<&str>, fg: Option<&str>) -> Theme {
-    let background = bg.unwrap_or("#fffff8");
-    let text       = fg.unwrap_or("#111111");
+fn tufte_theme(background: &str, text: &str) -> Theme {
 
     let (primary, secondary, tertiary, border, node_text) = if is_dark(background) {
         // Dark page: derive node fills by lightening the background colour so
@@ -108,6 +115,50 @@ fn tufte_theme(bg: Option<&str>, fg: Option<&str>) -> Theme {
     theme.font_family = "et-book, Palatino, 'Palatino Linotype', serif".to_owned();
 
     theme
+}
+
+/// Inject a `<style>` block containing `@media (prefers-color-scheme: dark)`
+/// overrides into a light-theme SVG, inserted right after the opening `<svg>`
+/// tag. The dark palette is derived from Tufte's `#151515` background using the
+/// same `lighten_hex` offsets as the light theme.
+fn inject_dark_style(svg: &str, light_bg: &str, light_fg: &str) -> String {
+    const DARK_BG: &str = "#151515";
+    const DARK_FG: &str = "#dddddd";
+
+    let dp = lighten_hex(DARK_BG, 35); // primary   (#383838)
+    let ds = lighten_hex(DARK_BG, 22); // secondary (#2b2b2b)
+    let dt = lighten_hex(DARK_BG, 15); // tertiary  (#242424)
+    let db = lighten_hex(DARK_BG, 65); // border    (#565656)
+
+    let style = format!(
+        concat!(
+            "<style>@media (prefers-color-scheme:dark){{",
+            "[fill=\"#e8e8e0\"]{{fill:{dp}}}",
+            "[fill=\"#f0f0e8\"]{{fill:{ds}}}",
+            "[fill=\"#e0e0d8\"]{{fill:{dt}}}",
+            "[stroke=\"#777777\"]{{stroke:{db}}}",
+            "[fill=\"{lfg}\"]{{fill:{DARK_FG}}}",
+            "[stroke=\"{lfg}\"]{{stroke:{DARK_FG}}}",
+            "[fill=\"{lbg}\"]{{fill:{DARK_BG}}}",
+            "}}</style>",
+        ),
+        dp = dp, ds = ds, dt = dt, db = db,
+        lfg = light_fg, lbg = light_bg,
+        DARK_FG = DARK_FG, DARK_BG = DARK_BG,
+    );
+
+    // Splice the <style> block in right after the `>` that closes <svg ...>.
+    if let Some(start) = svg.find("<svg") {
+        if let Some(rel) = svg[start..].find('>') {
+            let pos = start + rel + 1;
+            let mut out = String::with_capacity(svg.len() + style.len());
+            out.push_str(&svg[..pos]);
+            out.push_str(&style);
+            out.push_str(&svg[pos..]);
+            return out;
+        }
+    }
+    svg.to_owned()
 }
 
 /// Return `true` when `color` is a dark `#RRGGBB` or `#RGB` hex value.
@@ -198,6 +249,21 @@ mod tests {
     #[test]
     fn lighten_non_hex_passthrough() {
         assert_eq!(lighten_hex("hsl(0,0%,0%)", 10), "hsl(0,0%,0%)");
+    }
+
+    #[test]
+    fn inject_dark_style_light_page() {
+        let svg = r##"<svg xmlns="http://www.w3.org/2000/svg"><rect fill="#e8e8e0"/></svg>"##;
+        let result = inject_dark_style(svg, "#fffff8", "#111111");
+        assert!(result.contains("<style>@media (prefers-color-scheme:dark)"));
+        assert!(result.contains("[fill=\"#e8e8e0\"]"));
+        assert!(result.starts_with(r#"<svg xmlns="http://www.w3.org/2000/svg"><style>"#));
+    }
+
+    #[test]
+    fn inject_dark_style_no_svg_tag_passthrough() {
+        let bad = "<not-an-svg/>";
+        assert_eq!(inject_dark_style(bad, "#fffff8", "#111111"), bad);
     }
 
     #[test]
