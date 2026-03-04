@@ -76,8 +76,10 @@ fn tufte_theme(bg: Option<&str>, fg: Option<&str>) -> Theme {
 
     let mut theme = Theme::modern();
 
-    // Canvas
-    theme.background             = background.to_owned();
+    // Transparent background so the page background always shows through,
+    // including when Tufte CSS switches to dark mode via prefers-color-scheme.
+    // Edge label boxes keep the page color so arrow text stays readable.
+    theme.background             = "transparent".to_owned();
     theme.edge_label_background  = background.to_owned();
 
     // Node fills and borders
