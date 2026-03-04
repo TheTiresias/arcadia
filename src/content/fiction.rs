@@ -125,7 +125,10 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
                 .as_deref()
                 .map(|s| format!("<p class=\"subtitle\">{}</p>", s))
                 .unwrap_or_default();
-            let content = markdown::section_wrap(&markdown::render(&ch.body));
+            let content = markdown::section_wrap(
+                &markdown::render(&ch.body)
+                    .with_context(|| format!("render chapter {:?}", ch.slug))?,
+            );
 
             let html = templates::render(
                 &tmpl.chapter,

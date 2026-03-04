@@ -45,7 +45,9 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
             .unwrap_or("post")
             .to_owned();
 
-        let content = markdown::section_wrap(&markdown::render(body));
+        let content = markdown::section_wrap(
+            &markdown::render(body).with_context(|| format!("render {:?}", path))?,
+        );
 
         let subtitle_html = subtitle
             .as_deref()

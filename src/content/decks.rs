@@ -42,10 +42,11 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
 
         let slides_html: String = markdown::split_slides(body)
             .iter()
-            .map(|slide| {
-                format!("<div class=\"slide\">{}</div>", markdown::render(slide))
+            .map(|slide| -> anyhow::Result<String> {
+                Ok(format!("<div class=\"slide\">{}</div>", markdown::render(slide)?))
             })
-            .collect::<Vec<_>>()
+            .collect::<anyhow::Result<Vec<_>>>()
+            .with_context(|| format!("render slides in {:?}", path))?
             .join("\n");
 
         let tags_html = render_tag_pills(&tags, "..", true);

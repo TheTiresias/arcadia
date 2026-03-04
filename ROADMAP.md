@@ -1,16 +1,8 @@
 # Roadmap
 
-## 1. Mermaid diagrams (`src/mermaid.rs`)
+## 1. Screenshots from the example site
 
-- Use [`mermaid-rs-renderer`](https://github.com/1jehuang/mermaid-rs-renderer) — pure Rust, no browser or Node dependency, supports 23 diagram types
-- Add as a git dependency with default features disabled (SVG only, ~80 transitive crates vs ~180):
-  ```toml
-  mermaid-rs-renderer = { git = "https://github.com/1jehuang/mermaid-rs-renderer", tag = "v0.2.0", default-features = false }
-  ```
-- Pre-processing pass in the markdown pipeline: detect ` ```mermaid ` fenced code blocks
-- For each block, call `render(source)` from the crate to produce an SVG string
-- Inline the resulting SVG directly into the HTML output (no client-side JS, no subprocess)
-- Propagate render errors with the diagram source in the message for easier debugging
+Take screenshots of the built example site (home, post with a mermaid diagram, fiction ToC, slide deck) and add them to the README so visitors can see what Arcadia produces without having to build it themselves.
 
 ## 2. Template engine — consider replacing with a library
 

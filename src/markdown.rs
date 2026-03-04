@@ -1,14 +1,22 @@
+use anyhow::Result;
 use pulldown_cmark::{html, Options, Parser};
 
-/// Render markdown to HTML, with Tufte sidenote (`^[text]`) and margin note
-/// (`>[text]`) pre-processing applied before the pulldown-cmark pass.
-pub fn render(input: &str) -> String {
-    let preprocessed = preprocess(input);
+use crate::mermaid;
+
+/// Render markdown to HTML.
+///
+/// Passes through three stages:
+/// 1. Mermaid fenced blocks (```` ```mermaid ````) are replaced with inline SVG.
+/// 2. Tufte sidenote (`^[text]`) and margin note (`>[text]`) markers are expanded.
+/// 3. pulldown-cmark renders the result to HTML.
+pub fn render(input: &str) -> Result<String> {
+    let after_mermaid = mermaid::preprocess(input)?;
+    let preprocessed = preprocess(&after_mermaid);
     let options = Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH;
     let parser = Parser::new_ext(&preprocessed, options);
     let mut output = String::new();
     html::push_html(&mut output, parser);
-    output
+    Ok(output)
 }
 
 /// Wrap a rendered HTML string in `<section>` blocks, splitting on `<hr />`.
@@ -140,7 +148,7 @@ mod tests {
 
     #[test]
     fn sidenote_replaced() {
-        let html = render("Hello ^[a note] world.");
+        let html = render("Hello ^[a note] world.").unwrap();
         assert!(html.contains("sidenote-number"));
         assert!(html.contains(r#"<span class="sidenote">a note</span>"#));
         assert!(html.contains("Hello"));
@@ -149,48 +157,48 @@ mod tests {
 
     #[test]
     fn marginnote_replaced() {
-        let html = render("Hello >[a margin] world.");
+        let html = render("Hello >[a margin] world.").unwrap();
         assert!(html.contains("⊕"));
         assert!(html.contains(r#"<span class="marginnote">a margin</span>"#));
     }
 
     #[test]
     fn note_counter_increments() {
-        let html = render("^[first] and ^[second]");
+        let html = render("^[first] and ^[second]").unwrap();
         assert!(html.contains(r#"id="sn-1""#));
         assert!(html.contains(r#"id="sn-2""#));
     }
 
     #[test]
     fn mixed_note_types_share_counter() {
-        let html = render("^[side] and >[margin]");
+        let html = render("^[side] and >[margin]").unwrap();
         assert!(html.contains(r#"id="sn-1""#));
         assert!(html.contains(r#"id="mn-2""#));
     }
 
     #[test]
     fn nested_brackets_in_note() {
-        let html = render("^[see [this] ref]");
+        let html = render("^[see [this] ref]").unwrap();
         assert!(html.contains(r#"<span class="sidenote">see [this] ref</span>"#));
     }
 
     #[test]
     fn unclosed_note_left_verbatim() {
         // Should not panic; the raw marker should survive in the output.
-        let html = render("^[unclosed");
+        let html = render("^[unclosed").unwrap();
         assert!(html.contains("^"));
     }
 
     #[test]
     fn code_span_not_processed() {
-        let html = render("code: `^[not a note]`");
+        let html = render("code: `^[not a note]`").unwrap();
         assert!(html.contains("^[not a note]"));
         assert!(!html.contains("sidenote"));
     }
 
     #[test]
     fn fenced_block_not_processed() {
-        let html = render("```\n^[not a note]\n```");
+        let html = render("```\n^[not a note]\n```").unwrap();
         assert!(html.contains("^[not a note]"));
         assert!(!html.contains("sidenote"));
     }
