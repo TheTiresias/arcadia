@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 use crate::config::SiteConfig;
 use crate::content::{decks, fiction, posts, tags};
 use crate::content::{DeckMeta, PostMeta, StoryMeta};
+use crate::feeds;
 use crate::templates::{self, Templates};
 
 #[derive(Clone)]
@@ -16,6 +17,7 @@ pub struct BuildConfig {
     pub out_dir: PathBuf,
     pub drafts: bool,
     pub site_title: String,
+    pub base_url: Option<String>,
 }
 
 impl BuildConfig {
@@ -27,7 +29,8 @@ impl BuildConfig {
         site_config: &SiteConfig,
     ) -> Self {
         let site_title = site_config.title.clone().unwrap_or_else(|| "Arcadia".to_owned());
-        BuildConfig { project_dir, src_dir, out_dir, drafts, site_title }
+        let base_url = site_config.base_url.clone();
+        BuildConfig { project_dir, src_dir, out_dir, drafts, site_title, base_url }
     }
 }
 
@@ -67,10 +70,16 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     // 4. Generate index / fiction / decks listing pages
     generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title, &tmpl)?;
 
-    // 5. Copy resources/ → dist/resources/
+    // 5. RSS feed (only when base_url is configured)
+    if let Some(base_url) = &config.base_url {
+        feeds::build(out, &post_metas, &config.site_title, base_url)
+            .context("feeds pipeline")?;
+    }
+
+    // 6. Copy resources/ → dist/resources/
     copy_dir_if_exists(&src.join("resources"), &out.join("resources"))?;
 
-    // 6. Copy images/ → dist/images/
+    // 7. Copy images/ → dist/images/
     copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
 
     let elapsed_ms = start.elapsed().as_millis();

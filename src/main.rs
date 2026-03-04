@@ -1,6 +1,7 @@
 mod build;
 mod config;
 mod content;
+mod feeds;
 mod frontmatter;
 mod markdown;
 mod new;
