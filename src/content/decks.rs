@@ -4,9 +4,10 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 use super::{body_style, render_tag_pills, str_field, tags_field, DeckMeta};
-use crate::{frontmatter, markdown, templates};
+use crate::templates::{self, Templates};
+use crate::{frontmatter, markdown};
 
-pub fn build(src_dir: &Path, out_dir: &Path) -> Result<Vec<DeckMeta>> {
+pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<DeckMeta>> {
     let decks_src = src_dir.join("decks");
     let decks_out = out_dir.join("decks");
     fs::create_dir_all(&decks_out).context("create dist/decks")?;
@@ -50,7 +51,7 @@ pub fn build(src_dir: &Path, out_dir: &Path) -> Result<Vec<DeckMeta>> {
         let tags_html = render_tag_pills(&tags, "..", true);
 
         let html = templates::render(
-            templates::SLIDE_DECK,
+            &tmpl.slide_deck,
             &[
                 ("title", &title),
                 ("root", ".."),

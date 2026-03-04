@@ -61,6 +61,9 @@ enum Command {
         drafts: bool,
     },
 
+    /// Copy embedded templates into embed/ for local customisation
+    Eject,
+
     /// Delete the output directory
     Clean {
         /// Output directory to delete
@@ -104,6 +107,7 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
                 new::new_fiction(&PathBuf::from("."), &slug)?
             }
         },
+        Command::Eject => new::eject_templates(&PathBuf::from("."))?,
         Command::Build { src, output, drafts } => {
             let site_config = config::SiteConfig::load(std::path::Path::new("."))?;
             let src_dir = src

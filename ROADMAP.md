@@ -24,23 +24,10 @@
 - Inline the resulting SVG directly into the HTML output (no client-side JS, no subprocess)
 - Propagate render errors with the diagram source in the message for easier debugging
 
-## 4. `arcadia serve` watch mode (`src/serve.rs`)
-
-- Rebuild automatically when any source file changes during `arcadia serve`
-- Use the `notify` crate for cross-platform filesystem events
-- Watch the content directory (and `templates/` if present) for modifications, additions, and deletions
-- Re-run `build::build` on each relevant change; log what triggered the rebuild
-
-## 5. GitHub release workflow (`.github/workflows/release.yml`)
+## 4. GitHub release workflow (`.github/workflows/release.yml`)
 
 - Trigger on version tags (`v*`)
 - Build release binaries for three targets: `x86_64-unknown-linux-gnu`, `x86_64-apple-darwin`, `aarch64-apple-darwin`
 - Use `cargo build --release --target <target>` on the appropriate runner for each
 - Upload the resulting `arcadia` (or `arcadia.exe`) binary as a release asset via `softprops/action-gh-release`
 - Strip binaries before upload to reduce size
-
----
-
-## Deferred
-
-- **Template override** — allow a local `templates/` directory to shadow embedded templates.

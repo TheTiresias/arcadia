@@ -7,8 +7,9 @@ use anyhow::{Context, Result};
 use crate::config::SiteConfig;
 use crate::content::{decks, fiction, posts, tags};
 use crate::content::{DeckMeta, PostMeta, StoryMeta};
-use crate::templates;
+use crate::templates::{self, Templates};
 
+#[derive(Clone)]
 pub struct BuildConfig {
     pub project_dir: PathBuf,
     pub src_dir: PathBuf,
@@ -46,10 +47,13 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     // 1. Create output dir
     fs::create_dir_all(out).context("create output dir")?;
 
+    // Load templates (project-local overrides or embedded fallbacks)
+    let tmpl = Templates::load(&config.project_dir);
+
     // 2. Run all three pipelines in parallel
     let (post_result, (fiction_result, deck_result)) = rayon::join(
-        || posts::build(src, out, drafts),
-        || rayon::join(|| fiction::build(src, out), || decks::build(src, out)),
+        || posts::build(src, out, drafts, &tmpl),
+        || rayon::join(|| fiction::build(src, out, &tmpl), || decks::build(src, out, &tmpl)),
     );
 
     let post_metas = post_result.context("posts pipeline")?;
@@ -57,11 +61,11 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     let deck_metas = deck_result.context("decks pipeline")?;
 
     // 3. Tags pipeline (needs all metas)
-    tags::build(out, &post_metas, &story_metas, &deck_metas, &config.site_title)
+    tags::build(out, &post_metas, &story_metas, &deck_metas, &config.site_title, &tmpl)
         .context("tags pipeline")?;
 
     // 4. Generate index / fiction / decks listing pages
-    generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title)?;
+    generate_index(out, &post_metas, &story_metas, &deck_metas, &config.site_title, &tmpl)?;
 
     // 5. Copy resources/ → dist/resources/
     copy_dir_if_exists(&src.join("resources"), &out.join("resources"))?;
@@ -92,6 +96,7 @@ fn generate_index(
     stories: &[StoryMeta],
     decks: &[DeckMeta],
     site_title: &str,
+    tmpl: &Templates,
 ) -> Result<()> {
     // Home index
     let posts_html: String = posts
@@ -106,7 +111,7 @@ fn generate_index(
         .join("\n");
 
     let index_html = templates::render(
-        templates::INDEX,
+        &tmpl.index,
         &[("site_title", site_title), ("root", "."), ("posts", &posts_html)],
     );
     fs::write(out_dir.join("index.html"), index_html).context("write index.html")?;
@@ -129,7 +134,7 @@ fn generate_index(
         .join("\n");
 
     let fiction_html = templates::render(
-        templates::FICTION_INDEX,
+        &tmpl.fiction_index,
         &[("site_title", site_title), ("root", "."), ("stories", &stories_html)],
     );
     fs::write(out_dir.join("fiction.html"), fiction_html).context("write fiction.html")?;
@@ -147,7 +152,7 @@ fn generate_index(
         .join("\n");
 
     let decks_page = templates::render(
-        templates::DECKS_INDEX,
+        &tmpl.decks_index,
         &[("site_title", site_title), ("root", "."), ("decks", &decks_html)],
     );
     fs::write(out_dir.join("decks.html"), decks_page).context("write decks.html")?;

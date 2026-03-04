@@ -1,3 +1,6 @@
+use std::fs;
+use std::path::Path;
+
 /// Embedded templates — baked into the binary at compile time.
 /// Each constant holds the raw HTML of one template.
 pub const INDEX: &str = include_str!("../embed/index.html");
@@ -9,6 +12,40 @@ pub const DECKS_INDEX: &str = include_str!("../embed/decks-index.html");
 pub const SLIDE_DECK: &str = include_str!("../embed/slide-deck.html");
 pub const TAG_PAGE: &str = include_str!("../embed/tag-page.html");
 pub const TAGS_INDEX: &str = include_str!("../embed/tags-index.html");
+
+/// Runtime template set — loaded once per build.
+/// Each field is either the project-local override or the embedded constant.
+pub struct Templates {
+    pub index: String,
+    pub post: String,
+    pub fiction_index: String,
+    pub story_toc: String,
+    pub chapter: String,
+    pub decks_index: String,
+    pub slide_deck: String,
+    pub tag_page: String,
+    pub tags_index: String,
+}
+
+impl Templates {
+    pub fn load(project_dir: &Path) -> Self {
+        let load = |name: &str, fallback: &str| -> String {
+            let path = project_dir.join("embed").join(name);
+            fs::read_to_string(&path).unwrap_or_else(|_| fallback.to_owned())
+        };
+        Templates {
+            index: load("index.html", INDEX),
+            post: load("post.html", POST),
+            fiction_index: load("fiction-index.html", FICTION_INDEX),
+            story_toc: load("story-toc.html", STORY_TOC),
+            chapter: load("chapter.html", CHAPTER),
+            decks_index: load("decks-index.html", DECKS_INDEX),
+            slide_deck: load("slide-deck.html", SLIDE_DECK),
+            tag_page: load("tag-page.html", TAG_PAGE),
+            tags_index: load("tags-index.html", TAGS_INDEX),
+        }
+    }
+}
 
 /// Substitute `{{key}}` placeholders in `template` with the corresponding
 /// values from `vars`. Keys are matched exactly; unrecognised placeholders

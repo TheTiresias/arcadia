@@ -81,6 +81,7 @@ example/
   images/         ← image files
 
 arcadia.toml      ← site config (title, content_dir, output_dir, port, …)
+embed/            ← optional local template overrides (see arcadia eject)
 
 src/              ← the build tool (Rust)
 dist/             ← generated output (not committed)
@@ -127,17 +128,32 @@ Fiction tags belong to the story, not individual chapters — set them in `story
 
 ---
 
+## Customising Templates
+
+Arcadia's HTML output is driven by nine templates compiled into the binary. To customise them, run:
+
+```
+arcadia eject
+```
+
+This writes all nine templates into `embed/` in your project root. Edit any of them and the next build will use your version instead of the built-in one. Files you don't touch continue to use the defaults — you don't need to eject everything to change one template.
+
+See [HOW_TO_CUSTOMIZE_TEMPLATES.md](HOW_TO_CUSTOMIZE_TEMPLATES.md) for the full variable reference for each template.
+
+---
+
 ## Commands
 
 | Command | Description |
 |---|---|
 | `arcadia build` | Build the full site to `dist/` |
 | `arcadia build --drafts` | Build including draft posts |
-| `arcadia serve` | Build and serve locally at `http://localhost:3000` |
+| `arcadia serve` | Build, serve locally at `http://localhost:3000`, and rebuild automatically on any source file change |
 | `arcadia new` | Scaffold a new site skeleton |
 | `arcadia new post <slug>` | Scaffold a new blog post |
 | `arcadia new fiction <slug>` | Scaffold a new fiction story with a first chapter |
 | `arcadia new deck <slug>` | Scaffold a new slide deck |
+| `arcadia eject` | Copy all built-in templates into `embed/` for local customisation |
 
 ---
 

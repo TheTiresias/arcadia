@@ -4,9 +4,10 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 use super::{render_tag_pills, str_field, tags_field, PostMeta};
-use crate::{frontmatter, markdown, templates};
+use crate::templates::{self, Templates};
+use crate::{frontmatter, markdown};
 
-pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool) -> Result<Vec<PostMeta>> {
+pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> Result<Vec<PostMeta>> {
     let posts_src = src_dir.join("posts");
     let posts_out = out_dir.join("posts");
     fs::create_dir_all(&posts_out).context("create dist/posts")?;
@@ -58,7 +59,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool) -> Result<Vec<PostMet
         let tags_html = render_tag_pills(&tags, "..", false);
 
         let html = templates::render(
-            templates::POST,
+            &tmpl.post,
             &[
                 ("title", &title),
                 ("root", ".."),

@@ -5,7 +5,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 use super::{tag_slug, DeckMeta, PostMeta, StoryMeta};
-use crate::templates;
+use crate::templates::{self, Templates};
 
 struct TagEntry {
     name: String,
@@ -20,6 +20,7 @@ pub fn build(
     stories: &[StoryMeta],
     decks: &[DeckMeta],
     site_title: &str,
+    tmpl: &Templates,
 ) -> Result<()> {
     let tags_out = out_dir.join("tags");
     fs::create_dir_all(&tags_out).context("create dist/tags")?;
@@ -103,7 +104,7 @@ pub fn build(
         }
 
         let html = templates::render(
-            templates::TAG_PAGE,
+            &tmpl.tag_page,
             &[
                 ("tag", &entry.name),
                 ("site_title", site_title),
@@ -138,7 +139,7 @@ pub fn build(
         .join("\n");
 
     let index_html = templates::render(
-        templates::TAGS_INDEX,
+        &tmpl.tags_index,
         &[("site_title", site_title), ("root", "."), ("tags", &tags_list)],
     );
 

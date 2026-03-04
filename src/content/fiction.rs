@@ -4,7 +4,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 use super::{body_style, render_tag_pills, str_field, tags_field, StoryMeta};
-use crate::{frontmatter, markdown, templates};
+use crate::templates::{self, Templates};
+use crate::{frontmatter, markdown};
 
 struct ChapterInfo {
     slug: String,
@@ -14,7 +15,7 @@ struct ChapterInfo {
     body: String,
 }
 
-pub fn build(src_dir: &Path, out_dir: &Path) -> Result<Vec<StoryMeta>> {
+pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<StoryMeta>> {
     let fiction_src = src_dir.join("fiction");
     let fiction_out = out_dir.join("fiction");
 
@@ -127,7 +128,7 @@ pub fn build(src_dir: &Path, out_dir: &Path) -> Result<Vec<StoryMeta>> {
             let content = markdown::section_wrap(&markdown::render(&ch.body));
 
             let html = templates::render(
-                templates::CHAPTER,
+                &tmpl.chapter,
                 &[
                     ("title", &ch.title),
                     ("story_title", &story_title),
@@ -164,7 +165,7 @@ pub fn build(src_dir: &Path, out_dir: &Path) -> Result<Vec<StoryMeta>> {
         };
 
         let toc_html = templates::render(
-            templates::STORY_TOC,
+            &tmpl.story_toc,
             &[
                 ("title", &story_title),
                 ("root", "../.."),

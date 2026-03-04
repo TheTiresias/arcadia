@@ -3,6 +3,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
+use crate::templates;
+
 const TUFTE_CSS: &str = include_str!("../embed/tufte.css");
 
 /// Scaffold a full site skeleton in `dir`.
@@ -43,6 +45,38 @@ pub fn new_deck(dir: &Path, slug: &str) -> Result<()> {
         format!("---\ntitle: {}\n---\n\nSlide one.\n\n---\n\nSlide two.\n", slug);
     fs::write(&path, content).with_context(|| format!("write {:?}", path))?;
     println!("Created {:?}", path);
+    Ok(())
+}
+
+/// Copy all embedded templates into `{dir}/embed/` so they can be customised locally.
+/// Files that already exist are skipped to protect existing edits.
+pub fn eject_templates(dir: &Path) -> Result<()> {
+    let embed_dir = dir.join("embed");
+    fs::create_dir_all(&embed_dir).context("create embed dir")?;
+
+    let templates: &[(&str, &str)] = &[
+        ("index.html",        templates::INDEX),
+        ("post.html",         templates::POST),
+        ("fiction-index.html",templates::FICTION_INDEX),
+        ("story-toc.html",    templates::STORY_TOC),
+        ("chapter.html",      templates::CHAPTER),
+        ("decks-index.html",  templates::DECKS_INDEX),
+        ("slide-deck.html",   templates::SLIDE_DECK),
+        ("tag-page.html",     templates::TAG_PAGE),
+        ("tags-index.html",   templates::TAGS_INDEX),
+    ];
+
+    for (name, content) in templates {
+        let path = embed_dir.join(name);
+        if path.exists() {
+            println!("  skipped  embed/{} (already exists)", name);
+        } else {
+            fs::write(&path, content)
+                .with_context(|| format!("write embed/{}", name))?;
+            println!("  created  embed/{}", name);
+        }
+    }
+
     Ok(())
 }
 
