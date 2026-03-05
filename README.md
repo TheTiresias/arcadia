@@ -2,7 +2,7 @@
 
 A Tufte-style static site generator for writing. Supports blog posts, long-form fiction, and slide decks — all from plain markdown.
 
-Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark), and [toml](https://github.com/toml-rs/toml). No framework, no bundler — just a Rust binary.
+Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark), [mermaid-rs-renderer](https://github.com/1jehuang/mermaid-rs-renderer), and [toml](https://github.com/toml-rs/toml). No framework, no bundler — just a Rust binary.
 
 ---
 
@@ -106,6 +106,25 @@ Here is a sentence.>[This is a margin note.] Prose continues.
 ```
 
 A `---` in posts and fiction chapters becomes a `<section>` break, which is the structural unit Tufte CSS expects.
+
+---
+
+## Diagrams
+
+Arcadia renders [Mermaid](https://mermaid.js.org/) diagrams to inline SVG at build time — no JavaScript, no CDN dependency in the output.
+
+Use a fenced code block with the `mermaid` language tag:
+
+````markdown
+```mermaid
+graph TD
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Do it]
+  B -->|No| D[Skip it]
+```
+````
+
+Diagrams are supported in posts, fiction chapters, and slide decks. Colors are derived from the page's background and foreground so diagrams blend in on fiction pages with custom color schemes.
 
 ---
 
