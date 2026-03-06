@@ -5,8 +5,6 @@ use anyhow::{Context, Result};
 
 use crate::templates;
 
-const TUFTE_CSS: &str = include_str!("../embed/tufte.css");
-
 /// Scaffold a full site skeleton in `dir`.
 pub fn scaffold_site(dir: &Path) -> Result<()> {
     for d in &["example/posts", "example/fiction", "example/decks", "example/resources", "example/images"] {
@@ -15,9 +13,6 @@ pub fn scaffold_site(dir: &Path) -> Result<()> {
     }
 
     fs::write(dir.join("arcadia.toml"), "title = \"My Site\"\n").context("write arcadia.toml")?;
-
-    fs::write(dir.join("example/resources/tufte.css"), TUFTE_CSS)
-        .context("write example/resources/tufte.css")?;
 
     let sample = "\
 ---
@@ -99,7 +94,7 @@ pub fn eject_templates(dir: &Path) -> Result<()> {
 
     // Static assets embedded in the binary
     let assets: &[(&str, &str)] = &[
-        ("tufte.css", TUFTE_CSS),
+        ("tufte.css", templates::TUFTE_CSS),
     ];
     for (name, content) in assets {
         let path = embed_dir.join(name);

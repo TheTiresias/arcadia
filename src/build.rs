@@ -86,6 +86,19 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     // 6. Copy resources/ → dist/resources/
     copy_dir_if_exists(&src.join("resources"), &out.join("resources"))?;
 
+    // Write tufte.css from binary or ejected template (always wins over resources/).
+    // If the user has run `arcadia eject`, embed/tufte.css is their customised version;
+    // otherwise use the copy baked into the binary.
+    let resources_out = out.join("resources");
+    fs::create_dir_all(&resources_out).context("create resources dir")?;
+    let ejected = config.project_dir.join("embed").join("tufte.css");
+    let tufte_content = if ejected.exists() {
+        fs::read_to_string(&ejected).context("read ejected tufte.css")?
+    } else {
+        templates::TUFTE_CSS.to_owned()
+    };
+    fs::write(resources_out.join("tufte.css"), tufte_content).context("write tufte.css")?;
+
     // 7. Copy images/ → dist/images/
     copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
 

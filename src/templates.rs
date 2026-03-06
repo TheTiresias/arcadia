@@ -16,6 +16,7 @@ pub const SLIDE_DECK: &str = include_str!("../embed/slide-deck.html");
 pub const TAG_PAGE: &str = include_str!("../embed/tag-page.html");
 pub const TAGS_INDEX: &str = include_str!("../embed/tags-index.html");
 pub const NOT_FOUND: &str = include_str!("../embed/404.html");
+pub const TUFTE_CSS: &str = include_str!("../embed/tufte.css");
 
 /// Runtime template set — loaded once per build.
 /// Each field is either the project-local override or the embedded constant.
