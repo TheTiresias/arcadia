@@ -35,6 +35,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
         let bg_color = str_field(&meta, "background_color");
         let fg_color = str_field(&meta, "font_color");
         let bstyle = body_style(&meta);
+        let mermaid_node_spacing = meta.get("mermaid_node_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
+        let mermaid_rank_spacing = meta.get("mermaid_rank_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
 
         let slug = path
             .file_stem()
@@ -49,7 +51,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
                 Ok(format!(
                     "<div class=\"slide\" id=\"slide-{}\">{}",
                     i + 1,
-                    markdown::render(slide, bg_color.as_deref(), fg_color.as_deref())?
+                    markdown::render(slide, bg_color.as_deref(), fg_color.as_deref(), mermaid_node_spacing, mermaid_rank_spacing)?
                 ) + "</div>")
             })
             .collect::<anyhow::Result<Vec<_>>>()

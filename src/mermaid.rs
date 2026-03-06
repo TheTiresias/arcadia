@@ -6,7 +6,15 @@ use std::sync::OnceLock;
 /// Replace ```` ```mermaid ``` ```` fenced blocks in a markdown string with
 /// their inline SVG. `bg` and `fg` are the page's background and text colors
 /// (from frontmatter); both default to Tufte values when absent.
-pub fn preprocess(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<String> {
+/// `node_spacing` and `rank_spacing` override the layout defaults when provided
+/// (see `mermaid_node_spacing` / `mermaid_rank_spacing` frontmatter fields).
+pub fn preprocess(
+    input: &str,
+    bg: Option<&str>,
+    fg: Option<&str>,
+    node_spacing: Option<f32>,
+    rank_spacing: Option<f32>,
+) -> Result<String> {
     static RE: OnceLock<Regex> = OnceLock::new();
     let re = RE.get_or_init(|| {
         Regex::new(r"(?m)^```mermaid\n([\s\S]*?)\n```").unwrap()
@@ -15,9 +23,17 @@ pub fn preprocess(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<Str
     let background = bg.unwrap_or("#fffff8");
     let text       = fg.unwrap_or("#111111");
 
+    let mut layout = LayoutConfig::default();
+    // §3b: improved defaults for back-edge routing
+    layout.node_spacing = node_spacing.unwrap_or(80.0);
+    if let Some(rs) = rank_spacing {
+        layout.rank_spacing = rs;
+    }
+    layout.flowchart.routing.occupancy_weight = 2.5;
+
     let options = RenderOptions {
         theme: tufte_theme(background, text),
-        layout: LayoutConfig::default(),
+        layout,
     };
 
     let mut out = String::with_capacity(input.len());

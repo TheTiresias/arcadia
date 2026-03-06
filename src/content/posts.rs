@@ -38,6 +38,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
         let date = str_field(&meta, "date").unwrap_or_default();
         let subtitle = str_field(&meta, "subtitle");
         let tags = tags_field(&meta);
+        let mermaid_node_spacing = meta.get("mermaid_node_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
+        let mermaid_rank_spacing = meta.get("mermaid_rank_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
 
         let slug = path
             .file_stem()
@@ -46,7 +48,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
             .to_owned();
 
         let content = markdown::section_wrap(
-            &markdown::render(body, None, None)
+            &markdown::render(body, None, None, mermaid_node_spacing, mermaid_rank_spacing)
                 .with_context(|| format!("render {:?}", path))?,
         );
 
