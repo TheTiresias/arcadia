@@ -75,6 +75,10 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     if let Some(base_url) = &config.base_url {
         feeds::build(out, &post_metas, &config.site_title, base_url)
             .context("feeds pipeline")?;
+        feeds::build_fiction(out, &story_metas, &config.site_title, base_url)
+            .context("fiction feeds pipeline")?;
+        feeds::build_decks(out, &deck_metas, &config.site_title, base_url)
+            .context("decks feeds pipeline")?;
         sitemap::build(out, &post_metas, &story_metas, &deck_metas, base_url)
             .context("sitemap pipeline")?;
     }
