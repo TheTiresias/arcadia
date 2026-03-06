@@ -12,6 +12,7 @@ pub struct PostMeta {
     pub date: String,
     pub subtitle: Option<String>,
     pub tags: Vec<String>,
+    pub content_html: String,
 }
 
 #[derive(Clone)]

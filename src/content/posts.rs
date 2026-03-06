@@ -76,7 +76,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
         let out_path = posts_out.join(format!("{}.html", slug));
         fs::write(&out_path, html).with_context(|| format!("write {:?}", out_path))?;
 
-        metas.push(PostMeta { title, slug, date, subtitle, tags });
+        metas.push(PostMeta { title, slug, date, subtitle, tags, content_html: content });
     }
 
     // Sort date descending (ISO string lexicographic)

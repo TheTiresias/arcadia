@@ -22,6 +22,7 @@ pub fn build(out_dir: &Path, posts: &[PostMeta], site_title: &str, base_url: &st
             if let Some(sub) = &post.subtitle {
                 b.description(Some(sub.clone()));
             }
+            b.content(Some(post.content_html.clone()));
             b.build()
         })
         .collect();
