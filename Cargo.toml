@@ -27,3 +27,6 @@ mermaid-rs-renderer = { git = "https://github.com/1jehuang/mermaid-rs-renderer",
 notify = "6"
 rss = "2"
 walkdir = "2"
+
+[patch."https://github.com/1jehuang/mermaid-rs-renderer"]
+mermaid-rs-renderer = { path = "vendor/mermaid-rs-renderer" }
