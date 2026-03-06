@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            cross_target: false
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+            cross_target: false
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+            cross_target: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add cross-compile target
+        if: matrix.cross_target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Strip binary
+        run: strip target/${{ matrix.target }}/release/arcadia
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/${{ matrix.target }}/release/arcadia
+          name: ${{ github.ref_name }}
+          asset_name: arcadia-${{ matrix.target }}
