@@ -61,12 +61,15 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
         };
         let tags_html = render_tag_pills(&tags, "..", false);
 
+        let subtitle_text = subtitle.as_deref().unwrap_or("").replace('"', "&quot;");
+
         let html = templates::render(
             &tmpl.post,
             &[
                 ("title", &title),
                 ("root", ".."),
                 ("subtitle", &subtitle_html),
+                ("subtitle_text", &subtitle_text),
                 ("date", &date_html),
                 ("tags", &tags_html),
                 ("content", &content),

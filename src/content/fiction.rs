@@ -132,6 +132,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
                     .with_context(|| format!("render chapter {:?}", ch.slug))?,
             );
 
+            let subtitle_text = ch.subtitle.as_deref().unwrap_or("").replace('"', "&quot;");
+
             let html = templates::render(
                 &tmpl.chapter,
                 &[
@@ -140,6 +142,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
                     ("root", "../.."),
                     ("body_style", &bstyle),
                     ("subtitle", &subtitle_html),
+                    ("subtitle_text", &subtitle_text),
                     ("nav", &nav),
                     ("content", &content),
                 ],
