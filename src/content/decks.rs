@@ -44,11 +44,13 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
 
         let slides_html: String = markdown::split_slides(body)
             .iter()
-            .map(|slide| -> anyhow::Result<String> {
+            .enumerate()
+            .map(|(i, slide)| -> anyhow::Result<String> {
                 Ok(format!(
-                    "<div class=\"slide\">{}</div>",
+                    "<div class=\"slide\" id=\"slide-{}\">{}",
+                    i + 1,
                     markdown::render(slide, bg_color.as_deref(), fg_color.as_deref())?
-                ))
+                ) + "</div>")
             })
             .collect::<anyhow::Result<Vec<_>>>()
             .with_context(|| format!("render slides in {:?}", path))?

@@ -79,6 +79,7 @@
     document.getElementById('counter').textContent = (current + 1) + ' / ' + slides.length
     document.getElementById('prev').disabled = current === 0
     document.getElementById('next').disabled = current === slides.length - 1
+    history.replaceState(null, '', '#slide-' + (current + 1))
   }
 
   document.getElementById('prev').addEventListener('click', () => show(current - 1))
@@ -89,7 +90,8 @@
     if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1) }
   })
 
-  show(0)
+  const hash = location.hash.match(/^#slide-(\d+)$/)
+  show(hash ? Math.max(0, parseInt(hash[1], 10) - 1) : 0)
 </script>
 </body>
 </html>
