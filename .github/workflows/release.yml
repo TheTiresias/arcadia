@@ -14,13 +14,10 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-latest
-            cross_target: false
           - target: x86_64-apple-darwin
             runner: macos-latest
-            cross_target: false
           - target: aarch64-apple-darwin
             runner: macos-latest
-            cross_target: true
 
     steps:
       - name: Checkout
@@ -29,8 +26,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Add cross-compile target
-        if: matrix.cross_target
+      - name: Add compile target
         run: rustup target add ${{ matrix.target }}
 
       - name: Build release binary
