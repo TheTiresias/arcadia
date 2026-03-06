@@ -73,3 +73,13 @@ Many static hosts (GitHub Pages, Netlify, Vercel) will serve `404.html` from the
 ## 17. Open Graph meta tags (`embed/*.html`)
 
 None of the HTML templates include `<meta property="og:*">` or `<meta name="twitter:*">` tags. Without them, links shared on social platforms show no title, description, or image preview. At minimum, add `og:title`, `og:description`, and `og:url` to the post, chapter, and deck templates, populated from existing frontmatter fields (`title`, `subtitle`/`description`, and the page's canonical URL). Canonical URL generation requires `base_url` to be set in `arcadia.toml`.
+
+## 18. Custom page colors for posts and decks (`src/content/posts.rs`, `src/content/decks.rs`, `embed/post.html`, `embed/slide-deck.html`)
+
+Fiction pages already support `background_color` and `font_color` frontmatter fields that apply an inline style to `<body>`. The `body_style()` helper in `src/content/mod.rs` that generates this style is already written and shared — posts and decks simply don't call it. Extend both content types to support the same fields:
+
+- In `posts.rs`: extract `background_color` / `font_color` from frontmatter using the existing `body_style()` helper, pass the result to the template renderer as `{{body_style}}`
+- In `decks.rs`: same extraction and pass-through
+- In `embed/post.html` and `embed/slide-deck.html`: add `{{body_style}}` to the `<body>` opening tag, matching the pattern already used in `embed/chapter.html` and `embed/story-toc.html`
+
+For the Mermaid renderer, `bg` and `fg` should also be forwarded when rendering markdown so diagrams match the page colors, as is already done for fiction chapters.

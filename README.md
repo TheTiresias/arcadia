@@ -124,7 +124,7 @@ graph TD
 ```
 ````
 
-Diagrams are supported in posts, fiction chapters, and slide decks. Colors are derived from the page's background and foreground so diagrams blend in on fiction pages with custom color schemes.
+Diagrams are supported in posts, fiction chapters, and slide decks. Colors are derived from the page's background and foreground so diagrams blend in on pages with custom color schemes.
 
 ---
 
