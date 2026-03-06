@@ -47,17 +47,11 @@ Two distinct concerns, with different statuses:
 
 The only clean fix is a PR to `mermaid-rs-renderer` adding a `pub fn register_font_bytes(data: &[u8])` function, which would allow arcadia to call it with `include_bytes!("../embed/et-book/...")` before rendering. A fragile workaround would be writing the font files to a temp path that `fontdb` scans at system font load time, but this is OS-dependent and undesirable.
 
-## 4. Deep-link to individual slides (`src/content/decks.rs`, deck template)
-
-- Each slide gets an `id` attribute (`slide-1`, `slide-2`, …) so it can be targeted by a URL fragment (e.g. `decks/my-talk.html#slide-5`)
-- The JS navigation logic reads `location.hash` on load and jumps to the matching slide
-- When the user navigates between slides, update `location.hash` so the URL stays in sync and the back button works
-
-## 5. Sitemap completeness (`src/sitemap.rs`, `src/content/fiction.rs`)
+## 4. Sitemap completeness (`src/sitemap.rs`, `src/content/fiction.rs`)
 
 The sitemap includes posts, story table-of-contents pages, and deck pages, but omits fiction chapter pages, tag pages, and the listing indexes (`fiction.html`, `decks.html`, `tags.html`). To include chapters, `fiction::build` needs to return chapter slugs alongside `StoryMeta` so `sitemap::build` can enumerate them. Add `<lastmod>` tags derived from the `date` frontmatter field where available.
 
-## 6. Custom page colors for posts and decks (`src/content/posts.rs`, `src/content/decks.rs`, `embed/post.html`, `embed/slide-deck.html`)
+## 5. Custom page colors for posts and decks (`src/content/posts.rs`, `src/content/decks.rs`, `embed/post.html`, `embed/slide-deck.html`)
 
 Fiction pages already support `background_color` and `font_color` frontmatter fields that apply an inline style to `<body>`. The `body_style()` helper in `src/content/mod.rs` that generates this style is already written and shared — posts and decks simply don't call it. Extend both content types to support the same fields:
 
