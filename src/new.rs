@@ -97,6 +97,21 @@ pub fn eject_templates(dir: &Path) -> Result<()> {
         }
     }
 
+    // Static assets embedded in the binary
+    let assets: &[(&str, &str)] = &[
+        ("tufte.css", TUFTE_CSS),
+    ];
+    for (name, content) in assets {
+        let path = embed_dir.join(name);
+        if path.exists() {
+            println!("  skipped  embed/{} (already exists)", name);
+        } else {
+            fs::write(&path, content)
+                .with_context(|| format!("write embed/{}", name))?;
+            println!("  created  embed/{}", name);
+        }
+    }
+
     Ok(())
 }
 
