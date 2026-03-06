@@ -284,6 +284,13 @@ blockquote .marginnote {
     text-align: left;
 }
 
+.sidenote img,
+.marginnote img {
+    max-width: 100%;
+    max-height: 40vh;
+    height: auto;
+}
+
 div.fullwidth,
 table.fullwidth {
     width: 100%;
