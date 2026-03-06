@@ -378,6 +378,31 @@ label.margin-toggle:not(.sidenote-number) {
     height: 100%;
 }
 
+/* Footnotes (B1) */
+.footnotes {
+    font-size: 0.9em;
+    border-top: 1px solid #ccc;
+    margin-top: 2em;
+    padding-top: 0.5em;
+}
+
+/* Heading anchor links (B2) */
+.heading-anchor {
+    visibility: hidden;
+    margin-left: 0.5em;
+    font-size: 0.8em;
+    color: #999;
+    text-decoration: none;
+}
+h1:hover .heading-anchor,
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+h4:hover .heading-anchor,
+h5:hover .heading-anchor,
+h6:hover .heading-anchor {
+    visibility: visible;
+}
+
 @media (max-width: 760px) {
     body {
         width: 84%;

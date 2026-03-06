@@ -1,5 +1,7 @@
 use anyhow::Result;
-use pulldown_cmark::{html, Options, Parser};
+use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
+use regex::Regex;
+use std::sync::OnceLock;
 
 use crate::mermaid;
 
@@ -16,10 +18,41 @@ use crate::mermaid;
 pub fn render(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<String> {
     let after_mermaid = mermaid::preprocess(input, bg, fg)?;
     let preprocessed = preprocess(&after_mermaid);
-    let options = Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH;
+    let options = Options::ENABLE_TABLES
+        | Options::ENABLE_STRIKETHROUGH
+        | Options::ENABLE_FOOTNOTES;
     let parser = Parser::new_ext(&preprocessed, options);
+
+    // B3: intercept fenced code blocks for syntax highlighting
+    let mut events: Vec<Event> = Vec::new();
+    let mut in_code = false;
+    let mut code_lang = String::new();
+    let mut code_buf = String::new();
+    for event in parser {
+        match event {
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(ref lang))) => {
+                in_code = true;
+                code_lang = lang.to_string();
+                code_buf.clear();
+            }
+            Event::Text(ref text) if in_code => {
+                code_buf.push_str(text);
+            }
+            Event::End(TagEnd::CodeBlock) if in_code => {
+                in_code = false;
+                let highlighted = syntax_highlight(&code_lang, &code_buf);
+                events.push(Event::Html(highlighted.into()));
+            }
+            other if in_code => drop(other),
+            other => events.push(other),
+        }
+    }
+
     let mut output = String::new();
-    html::push_html(&mut output, parser);
+    html::push_html(&mut output, events.into_iter());
+
+    // B2: add id + anchor link to every heading
+    let output = add_heading_anchors(&output);
     Ok(output)
 }
 
@@ -36,6 +69,76 @@ pub fn section_wrap(html: &str) -> String {
 /// Returns raw markdown chunks (not yet rendered); each chunk is one slide.
 pub fn split_slides(input: &str) -> Vec<&str> {
     input.split("\n---\n").collect()
+}
+
+// ── Syntax highlighting (B3) ───────────────────────────────────────────────────
+
+fn syntax_highlight(lang: &str, code: &str) -> String {
+    use syntect::easy::HighlightLines;
+    use syntect::highlighting::ThemeSet;
+    use syntect::html::{styled_line_to_highlighted_html, IncludeBackground};
+    use syntect::parsing::SyntaxSet;
+    use syntect::util::LinesWithEndings;
+
+    static SS: OnceLock<SyntaxSet> = OnceLock::new();
+    static TS: OnceLock<ThemeSet> = OnceLock::new();
+
+    let ss = SS.get_or_init(SyntaxSet::load_defaults_newlines);
+    let ts = TS.get_or_init(ThemeSet::load_defaults);
+
+    let syntax = ss
+        .find_syntax_by_token(lang)
+        .unwrap_or_else(|| ss.find_syntax_plain_text());
+    let theme = ts
+        .themes
+        .get("InspiredGitHub")
+        .or_else(|| ts.themes.values().next())
+        .expect("syntect default themes are non-empty");
+
+    let mut h = HighlightLines::new(syntax, theme);
+    let mut out = String::from("<pre><code>");
+    for line in LinesWithEndings::from(code) {
+        match h.highlight_line(line, ss) {
+            Ok(ranges) => match styled_line_to_highlighted_html(&ranges, IncludeBackground::No) {
+                Ok(html) => out.push_str(&html),
+                Err(_) => out.push_str(&escape_html(line)),
+            },
+            Err(_) => out.push_str(&escape_html(line)),
+        }
+    }
+    out.push_str("</code></pre>");
+    out
+}
+
+fn escape_html(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+
+// ── Heading anchors (B2) ───────────────────────────────────────────────────────
+
+fn add_heading_anchors(html: &str) -> String {
+    static HEADING_RE: OnceLock<Regex> = OnceLock::new();
+    static STRIP_TAGS_RE: OnceLock<Regex> = OnceLock::new();
+
+    let heading_re = HEADING_RE
+        .get_or_init(|| Regex::new(r"(?s)<(h[1-6])>(.*?)</h[1-6]>").unwrap());
+    let strip_re = STRIP_TAGS_RE
+        .get_or_init(|| Regex::new(r"<[^>]+>").unwrap());
+
+    heading_re
+        .replace_all(html, |caps: &regex::Captures| {
+            let tag = &caps[1];
+            let content = &caps[2];
+            let text = strip_re.replace_all(content, "");
+            let id = slug::slugify(&*text);
+            format!(
+                r#"<{tag} id="{id}">{content}<a href="#{id}" class="heading-anchor">#</a></{tag}>"#
+            )
+        })
+        .into_owned()
 }
 
 // ── Pre-processing ────────────────────────────────────────────────────────────
