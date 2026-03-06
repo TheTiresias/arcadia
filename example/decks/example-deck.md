@@ -30,6 +30,19 @@ function nextSlide(current, total) {
 
 ---
 
+## Diagrams
+
+Mermaid diagrams render to inline SVG at build time — no JavaScript required:
+
+```mermaid
+graph TD
+    A[Write markdown] --> B[arcadia build]
+    B --> C[Static HTML]
+    C --> D[Ship it]
+```
+
+---
+
 ## Quotes
 
 > The greatest obstacle to discovery is not ignorance —
