@@ -18,9 +18,8 @@ use crate::mermaid;
 pub fn render(input: &str, bg: Option<&str>, fg: Option<&str>) -> Result<String> {
     let after_mermaid = mermaid::preprocess(input, bg, fg)?;
     let preprocessed = preprocess(&after_mermaid);
-    let options = Options::ENABLE_TABLES
-        | Options::ENABLE_STRIKETHROUGH
-        | Options::ENABLE_FOOTNOTES;
+    let options =
+        Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_FOOTNOTES;
     let parser = Parser::new_ext(&preprocessed, options);
 
     // B3: intercept fenced code blocks for syntax highlighting
@@ -123,10 +122,9 @@ fn add_heading_anchors(html: &str) -> String {
     static HEADING_RE: OnceLock<Regex> = OnceLock::new();
     static STRIP_TAGS_RE: OnceLock<Regex> = OnceLock::new();
 
-    let heading_re = HEADING_RE
-        .get_or_init(|| Regex::new(r"(?s)<(h[1-6])>(.*?)</h[1-6]>").unwrap());
-    let strip_re = STRIP_TAGS_RE
-        .get_or_init(|| Regex::new(r"<[^>]+>").unwrap());
+    let heading_re =
+        HEADING_RE.get_or_init(|| Regex::new(r"(?s)<(h[1-6])>(.*?)</h[1-6]>").unwrap());
+    let strip_re = STRIP_TAGS_RE.get_or_init(|| Regex::new(r"<[^>]+>").unwrap());
 
     heading_re
         .replace_all(html, |caps: &regex::Captures| {
@@ -135,7 +133,7 @@ fn add_heading_anchors(html: &str) -> String {
             let text = strip_re.replace_all(content, "");
             let id = slug::slugify(&*text);
             format!(
-                r#"<{tag} id="{id}">{content}<a href="#{id}" class="heading-anchor">#</a></{tag}>"#
+                r##"<{tag} id="{id}">{content}<a href="#{id}" class="heading-anchor">#</a></{tag}>"##
             )
         })
         .into_owned()
@@ -340,5 +338,4 @@ mod tests {
         let slides = split_slides("only one slide");
         assert_eq!(slides.len(), 1);
     }
-
 }
