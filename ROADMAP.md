@@ -60,3 +60,47 @@ Fiction pages already support `background_color` and `font_color` frontmatter fi
 - In `embed/post.html` and `embed/slide-deck.html`: add `{{body_style}}` to the `<body>` opening tag, matching the pattern already used in `embed/chapter.html` and `embed/story-toc.html`
 
 For the Mermaid renderer, `bg` and `fg` should also be forwarded when rendering markdown so diagrams match the page colors, as is already done for fiction chapters.
+
+## 6. Replace hand-rolled date formatting with `chrono` (`src/feeds.rs`)
+
+`to_rfc2822()` manually parses `YYYY-MM-DD` strings and constructs an RFC 2822 date by string concatenation. It hardcodes the timezone as `+0000`, does no range validation, and silently produces garbage on any non-conforming input. Replace with `chrono`:
+
+```rust
+use chrono::NaiveDate;
+NaiveDate::parse_from_str(date, "%Y-%m-%d")
+    .map(|d| d.and_hms_opt(0, 0, 0).unwrap().and_utc().to_rfc2822())
+    .unwrap_or_default()
+```
+
+Add `chrono = { version = "0.4", default-features = false, features = ["std"] }` to `Cargo.toml`.
+
+## 7. Replace hand-rolled frontmatter parsing with `gray-matter` (`src/frontmatter.rs`)
+
+The current parser manually scans for `\n---` delimiters with bespoke edge-case handling (empty body, closing delimiter at EOF). The `gray-matter` crate handles all of this robustly and is a near drop-in. Verify how much of `frontmatter.rs` would be deleted before committing — if it's close to 100%, the swap is worthwhile.
+
+## 8. Replace manual `escape_html` with `html-escape` crate (`src/markdown.rs`)
+
+The four-line `escape_html()` function performs substitutions in a specific order (`&` must go first) with no indication that order matters. The `html-escape` crate handles all cases correctly. Small change, eliminates a latent footgun.
+
+## 9. Consolidate `copy_assets` / `copy_dir_recursive` in `build.rs`
+
+Two functions in `src/build.rs` do nearly identical recursive directory copying — `copy_assets` (with mtime-based skip) and `copy_dir_recursive` (unconditional). Merge into one function with an `incremental: bool` parameter and update the three call sites.
+
+## 10. Shared helper for mermaid frontmatter extraction (`src/content/mod.rs`, `posts.rs`, `decks.rs`)
+
+Both `posts.rs` and `decks.rs` contain identical code to extract `mermaid_node_spacing` and `mermaid_rank_spacing` from a frontmatter map:
+
+```rust
+meta.get("mermaid_node_spacing").and_then(|v| v.as_f64()).map(|v| v as f32)
+```
+
+Move this into a `f32_field(meta, key)` helper in `src/content/mod.rs` alongside the existing `str_field` and `tags_field` helpers.
+
+## 11. Deduplicate tag section rendering in `tags.rs`
+
+`src/content/tags.rs` builds HTML for Posts, Fiction, and Decks tag sections with three copy-pasted `<h2>...<ul>` blocks that differ only in label and URL prefix. Extract a two-argument helper `fn tag_section(label: &str, items: &[(String, String)], url_prefix: &str) -> String` and replace the three blocks.
+
+## Suggestions
+
+Opportunistic improvements discovered during development. Not yet scheduled.
+
