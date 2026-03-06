@@ -85,6 +85,9 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     // 7. Copy images/ → dist/images/
     copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
 
+    // 8. Copy assets/ → dist/assets/ (incremental: skip unchanged files)
+    copy_assets(&src.join("assets"), &out.join("assets"))?;
+
     let elapsed_ms = start.elapsed().as_millis();
     println!(
         "Built {} posts, {} stories, {} decks in {}ms",
@@ -175,6 +178,41 @@ fn generate_index(
     );
     fs::write(out_dir.join("decks.html"), decks_page).context("write decks.html")?;
 
+    // 404 page
+    let not_found_html = templates::render(
+        &tmpl.not_found,
+        &[("title", site_title), ("root", ".")],
+    );
+    fs::write(out_dir.join("404.html"), not_found_html).context("write 404.html")?;
+
+    Ok(())
+}
+
+/// Recursively copy `src` to `dst`, skipping files whose destination is
+/// already at least as new as the source (incremental build).
+fn copy_assets(src: &Path, dst: &Path) -> Result<()> {
+    if !src.exists() {
+        return Ok(());
+    }
+    fs::create_dir_all(dst).with_context(|| format!("create dir {:?}", dst))?;
+    for entry in fs::read_dir(src).with_context(|| format!("read dir {:?}", src))? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if src_path.is_dir() {
+            copy_assets(&src_path, &dst_path)?;
+        } else {
+            if dst_path.exists() {
+                let src_mtime = fs::metadata(&src_path)?.modified()?;
+                let dst_mtime = fs::metadata(&dst_path)?.modified()?;
+                if dst_mtime >= src_mtime {
+                    continue;
+                }
+            }
+            fs::copy(&src_path, &dst_path)
+                .with_context(|| format!("copy {:?} → {:?}", src_path, dst_path))?;
+        }
+    }
     Ok(())
 }
 

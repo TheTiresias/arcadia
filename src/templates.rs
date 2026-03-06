@@ -15,6 +15,7 @@ pub const DECKS_INDEX: &str = include_str!("../embed/decks-index.html");
 pub const SLIDE_DECK: &str = include_str!("../embed/slide-deck.html");
 pub const TAG_PAGE: &str = include_str!("../embed/tag-page.html");
 pub const TAGS_INDEX: &str = include_str!("../embed/tags-index.html");
+pub const NOT_FOUND: &str = include_str!("../embed/404.html");
 
 /// Runtime template set — loaded once per build.
 /// Each field is either the project-local override or the embedded constant.
@@ -28,6 +29,7 @@ pub struct Templates {
     pub slide_deck: String,
     pub tag_page: String,
     pub tags_index: String,
+    pub not_found: String,
 }
 
 impl Templates {
@@ -46,6 +48,7 @@ impl Templates {
             slide_deck: load("slide-deck.html", SLIDE_DECK),
             tag_page: load("tag-page.html", TAG_PAGE),
             tags_index: load("tags-index.html", TAGS_INDEX),
+            not_found: load("404.html", NOT_FOUND),
         }
     }
 }
@@ -172,5 +175,6 @@ mod tests {
         assert!(!SLIDE_DECK.is_empty());
         assert!(!TAG_PAGE.is_empty());
         assert!(!TAGS_INDEX.is_empty());
+        assert!(!NOT_FOUND.is_empty());
     }
 }
