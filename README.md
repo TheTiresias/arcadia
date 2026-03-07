@@ -6,6 +6,18 @@ Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmar
 
 ---
 
+## Screenshots
+
+| Home | Post (with sidenotes + diagram) |
+|---|---|
+| ![Home page](docs/screenshots/home.png) | ![Blog post](docs/screenshots/post.png) |
+
+| Fiction table of contents | Slide deck |
+|---|---|
+| ![Fiction ToC](docs/screenshots/fiction-toc.png) | ![Slide deck](docs/screenshots/deck.png) |
+
+---
+
 ## Getting Started
 
 ```
