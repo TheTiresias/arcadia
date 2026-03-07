@@ -16,6 +16,10 @@ Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmar
 |---|---|
 | ![Fiction ToC](docs/screenshots/fiction-toc.png) | ![Slide deck](docs/screenshots/deck.png) |
 
+| Dark mode (OS preference) |
+|---|
+| ![Dark mode](docs/screenshots/dark-mode.png) |
+
 ---
 
 ## Getting Started
