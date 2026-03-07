@@ -63,6 +63,20 @@ Move this into a `f32_field(meta, key)` helper in `src/content/mod.rs` alongside
 
 `src/content/tags.rs` builds HTML for Posts, Fiction, and Decks tag sections with three copy-pasted `<h2>...<ul>` blocks that differ only in label and URL prefix. Extract a two-argument helper `fn tag_section(label: &str, items: &[(String, String)], url_prefix: &str) -> String` and replace the three blocks.
 
+## 12. Demo site on GitHub Pages
+
+Consolidate the four `HOW_TO_*.md` files into the example site as proper posts or a dedicated docs section, then publish the built `example/dist/` to GitHub Pages so visitors can browse a live Arcadia site.
+
+Work in two parts:
+
+**12a. Absorb the HOW_TO docs into the example site**
+
+Convert `HOW_TO_WRITE_POSTS.md`, `HOW_TO_WRITE_FICTION.md`, `HOW_TO_WRITE_DECKS.md`, and `HOW_TO_CUSTOMIZE_TEMPLATES.md` into posts (or a dedicated `docs/` content type if more structure is needed). The example site becomes the canonical reference, and the standalone files in the repo root can be removed or replaced with a redirect note pointing to the live site.
+
+**12b. GitHub Pages deployment**
+
+Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and deploys the output to GitHub Pages. Set `base_url` in `arcadia.toml` to the Pages URL so the sitemap and RSS feed have correct absolute URLs. Update the README to link to the live site.
+
 ## Suggestions
 
 Opportunistic improvements discovered during development. Not yet scheduled.
