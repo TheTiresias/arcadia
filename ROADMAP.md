@@ -295,20 +295,39 @@ The current engine (plain substitution + `{{#if}}` conditionals) is intentionall
 **Can parallelize with:** 11 (touches disjoint files, but both are high-risk — serialize instead)
 **Verify:** `cargo test` passes; full example site build produces byte-for-byte identical HTML output compared to the previous engine
 
-### 11. Mermaid 3d — ET Book font build-time metrics (requires upstream PR)
+### 11. Mermaid 3d — ET Book font build-time metrics
 
 *Browser display* — likely already correct. The SVGs are embedded inline in the HTML, and inline SVGs inherit `@font-face` rules from the page's CSS. Since `tufte.css` loads ET Book, diagram text should render with ET Book in browsers despite the font not being available at build time.
 
-*Build-time text measurement* — a remaining limitation. The renderer measures glyph widths at build time to size node boxes, using `fontdb::Database` loaded via `load_system_fonts()`. The `TextMeasurer` and its `fontdb` database are private with no public API for registering additional fonts. As a result, node box geometry is calculated from system serif metrics rather than ET Book metrics — likely close enough to be invisible, but technically imprecise.
+*Build-time text measurement* — a remaining limitation. The renderer measures glyph widths at build time to size node boxes via `fontdb::Database::load_system_fonts()`. Node box geometry is therefore calculated from system serif metrics rather than ET Book metrics — likely close enough to be invisible in practice, but technically imprecise.
 
-The only clean fix is a PR to `mermaid-rs-renderer` adding a `pub fn register_font_bytes(data: &[u8])` function, which would allow arcadia to call it with `include_bytes!("../embed/et-book/...")` before rendering.
+Since `mermaid-rs-renderer` is vendored, the fix can be made directly: add a `pub fn register_font_bytes(data: &[u8])` API to `vendor/mermaid-rs-renderer/src/text_metrics.rs`, then call it with `include_bytes!("../embed/et-book/...")` from `src/mermaid.rs` before rendering.
 
-**Files:** `src/mermaid.rs` (after upstream PR is merged and dep is updated)
-**Depends on:** upstream PR to `mermaid-rs-renderer` merged
+**Files:** `vendor/mermaid-rs-renderer/src/text_metrics.rs`, `src/mermaid.rs`
+**Depends on:** all prior phases complete
 **Can parallelize with:** 10 (touches disjoint files, but both are high-risk — serialize instead)
-**Verify:** `cargo test` passes; node box widths in rendered SVGs match ET Book glyph metrics
+**Verify:** `cargo test` passes; node box widths in rendered SVGs visibly match ET Book glyph metrics
 
 ---
+
+## 12. Demo site on GitHub Pages
+
+Consolidate the four `HOW_TO_*.md` files into the example site as proper posts or a dedicated docs section, then publish the built `example/dist/` to GitHub Pages so visitors can browse a live Arcadia site.
+
+Work in two parts:
+
+**12a. Absorb the HOW_TO docs into the example site**
+
+Convert `HOW_TO_WRITE_POSTS.md`, `HOW_TO_WRITE_FICTION.md`, `HOW_TO_WRITE_DECKS.md`, and `HOW_TO_CUSTOMIZE_TEMPLATES.md` into posts (or a dedicated `docs/` content type if more structure is needed). The example site becomes the canonical reference, and the standalone files in the repo root can be removed or replaced with a redirect note pointing to the live site.
+
+**12b. GitHub Pages deployment**
+
+Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and deploys the output to GitHub Pages. Set `base_url` in `arcadia.toml` to the Pages URL so the sitemap and RSS feed have correct absolute URLs. Update the README to link to the live site.
+
+**Files:** `example/`, `.github/workflows/pages.yml`, `README.md`
+**Depends on:** —
+**Can parallelize with:** 10, 11 (content and infra work, entirely disjoint files)
+**Verify:** GitHub Pages site is live and browsable; RSS feed and sitemap contain correct absolute URLs
 
 ## Suggestions
 
