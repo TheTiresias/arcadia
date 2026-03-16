@@ -65,6 +65,160 @@ Move this into a `f32_field(meta, key)` helper in `src/content/mod.rs` alongside
 
 ---
 
+## Phase 1.5 — Integration test suite (before continuing with Phase 2)
+
+The current test suite is entirely unit tests against internal functions. There is no coverage of the actual CLI behavior: whether `arcadia build` produces correct HTML, whether drafts are excluded, whether prev/next navigation is wired up in fiction chapters, etc. The library swaps in Phase 2 are exactly the kind of change that can silently break output — integration tests should be in place first.
+
+### 0. Add integration test scaffolding
+
+Add `assert_cmd`, `predicates`, and `tempfile` as dev-dependencies. Create the `tests/` directory with fixture projects and a test module per command.
+
+**New files/dirs:**
+```
+tests/
+  integration/
+    mod.rs          — shared helpers (build_fixture, fixture_path, etc.)
+    build_posts.rs
+    build_fiction.rs
+    build_decks.rs
+    build_tags.rs
+    build_feeds.rs
+    new_command.rs
+  fixtures/
+    simple_post/
+      arcadia.toml
+      src/posts/hello.md        — title, date, subtitle, tags, body with heading
+    draft_post/
+      arcadia.toml
+      src/posts/published.md
+      src/posts/draft.md        — draft: true
+    fiction_story/
+      arcadia.toml
+      src/fiction/my-story/
+        story.md                — title, description, tags
+        ch1.md                  — order: 1
+        ch2.md                  — order: 2
+        ch3.md                  — order: 3
+    simple_deck/
+      arcadia.toml
+      src/decks/my-deck.md      — three slides split on \n---\n
+    tagged_content/
+      arcadia.toml
+      src/posts/rust-post.md    — tags: [rust, programming]
+      src/fiction/tagged-story/
+        story.md                — tags: [rust]
+        ch1.md
+    with_base_url/
+      arcadia.toml              — base_url = "https://example.com"
+      src/posts/hello.md
+```
+
+**`Cargo.toml` additions:**
+```toml
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
+```
+
+**Shared helper sketch (`tests/integration/mod.rs`):**
+```rust
+use std::path::{Path, PathBuf};
+use assert_cmd::Command;
+use tempfile::TempDir;
+
+pub fn fixture_path(name: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(name)
+}
+
+pub fn build_fixture(fixture: &str) -> (TempDir, PathBuf) {
+    let tmp = tempfile::tempdir().unwrap();
+    // copy fixture into tmp so tests don't write into the repo
+    copy_dir_all(&fixture_path(fixture), tmp.path()).unwrap();
+    let dist = tmp.path().join("dist");
+    Command::cargo_bin("arcadia").unwrap()
+        .args(["build", "--project", tmp.path().to_str().unwrap()])
+        .assert()
+        .success();
+    (tmp, dist)
+}
+```
+
+**Files:** `tests/`, `Cargo.toml`
+**Depends on:** —
+**Can parallelize with:** nothing — must be done before Phase 2
+**Verify:** `cargo test` includes integration tests and they pass; `cargo test --test integration` runs only the CLI tests
+
+---
+
+### Test cases to implement
+
+Each test should be independent (own fixture, own `TempDir`).
+
+#### `build_posts.rs`
+
+| Test | Fixture | Assert |
+|------|---------|--------|
+| `post_renders_html` | `simple_post` | `dist/posts/hello.html` exists |
+| `post_contains_title` | `simple_post` | file contains `<h1>` with post title |
+| `post_contains_date` | `simple_post` | file contains date string |
+| `post_contains_subtitle` | `simple_post` | file contains subtitle text |
+| `draft_excluded_by_default` | `draft_post` | `dist/posts/draft.html` does not exist |
+| `draft_included_with_flag` | `draft_post` | run with `--drafts`; `dist/posts/draft.html` exists |
+| `post_index_lists_post` | `simple_post` | `dist/index.html` contains link to post |
+
+#### `build_fiction.rs`
+
+| Test | Fixture | Assert |
+|------|---------|--------|
+| `story_toc_rendered` | `fiction_story` | `dist/fiction/my-story/index.html` exists |
+| `chapter_pages_rendered` | `fiction_story` | `dist/fiction/my-story/ch1.html` … `ch3.html` exist |
+| `chapter_has_next_link` | `fiction_story` | `ch1.html` contains link to `ch2.html` |
+| `chapter_has_prev_link` | `fiction_story` | `ch2.html` contains link to `ch1.html` |
+| `first_chapter_no_prev` | `fiction_story` | `ch1.html` does not contain prev link |
+| `last_chapter_no_next` | `fiction_story` | `ch3.html` does not contain next link |
+| `fiction_index_lists_story` | `fiction_story` | `dist/fiction.html` contains story title |
+
+#### `build_decks.rs`
+
+| Test | Fixture | Assert |
+|------|---------|--------|
+| `deck_renders_html` | `simple_deck` | `dist/decks/my-deck.html` exists |
+| `deck_has_three_slides` | `simple_deck` | file contains three `<div class="slide"` blocks |
+| `decks_index_lists_deck` | `simple_deck` | `dist/decks.html` contains link to deck |
+
+#### `build_tags.rs`
+
+| Test | Fixture | Assert |
+|------|---------|--------|
+| `tag_index_rendered` | `tagged_content` | `dist/tags.html` exists and contains `#rust` |
+| `tag_page_rendered` | `tagged_content` | `dist/tags/rust.html` exists |
+| `tag_page_lists_post` | `tagged_content` | `dist/tags/rust.html` contains link to post |
+| `tag_page_lists_story` | `tagged_content` | `dist/tags/rust.html` contains link to story |
+
+#### `build_feeds.rs`
+
+| Test | Fixture | Assert |
+|------|---------|--------|
+| `feeds_not_generated_without_base_url` | `simple_post` | `dist/feed.xml` does not exist |
+| `post_feed_generated` | `with_base_url` | `dist/feed.xml` exists, is valid XML |
+| `post_feed_contains_item` | `with_base_url` | `feed.xml` contains post title and link |
+| `fiction_feed_generated` | `with_base_url` (add story) | `dist/fiction-feed.xml` exists |
+| `decks_feed_generated` | `with_base_url` (add deck) | `dist/decks-feed.xml` exists |
+
+#### `new_command.rs`
+
+| Test | Assert |
+|------|--------|
+| `new_scaffolds_dirs` | `posts/`, `fiction/`, `decks/`, `images/`, `resources/`, `assets/` exist |
+| `new_creates_config` | `arcadia.toml` exists and contains `title` key |
+| `new_post_creates_file` | `arcadia new post "My Post"` creates a `.md` in `posts/` |
+| `new_deck_creates_file` | `arcadia new deck "My Deck"` creates a `.md` in `decks/` |
+
+---
+
 ## Phase 2 — Library swaps (refactoring, no new features)
 
 Items 6 and 7 touch disjoint files and can run in parallel, but both depend on Phase 1 being complete.
