@@ -1,0 +1,3 @@
+title = "Test Site"
+content_dir = "src"
+output_dir = "dist"

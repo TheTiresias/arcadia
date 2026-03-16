@@ -1,0 +1,4 @@
+title = "Test Site"
+content_dir = "src"
+output_dir = "dist"
+base_url = "https://example.com"

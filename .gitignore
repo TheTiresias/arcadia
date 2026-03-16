@@ -3,4 +3,4 @@ dist/
 .claude/
 target/
 example/resources/
-arcadia.toml
+/arcadia.toml
