@@ -1,5 +1,7 @@
 # Arcadia
 
+[![CI](https://github.com/TheTiresias/arcadia/actions/workflows/ci.yml/badge.svg)](https://github.com/TheTiresias/arcadia/actions/workflows/ci.yml)
+
 A Tufte-style static site generator for writing. Supports blog posts, long-form fiction, and slide decks — all from plain markdown.
 
 Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark), [mermaid-rs-renderer](https://github.com/1jehuang/mermaid-rs-renderer), and [toml](https://github.com/toml-rs/toml). No framework, no bundler — just a Rust binary.
@@ -36,7 +38,7 @@ Output goes to `dist/`. Open `dist/index.html` in a browser to view the site.
 
 ## Using This as a Template
 
-1. **Scaffold a new site** — run `arcadia new` to create the directory structure, a sample post, and `example/resources/tufte.css`.
+1. **Scaffold a new site** — run `arcadia new` to create the directory structure and a sample post.
 
 2. **Set your site title** — edit `arcadia.toml` in the project root:
    ```toml
@@ -93,21 +95,24 @@ example/
       story.md    ← story metadata
       *.md        ← chapter files
   decks/          ← slide deck markdown files
-  resources/      ← static assets (tufte.css lives here)
-  images/         ← image files
+  resources/      ← static assets copied to dist/resources/
+  images/         ← image files copied to dist/images/
+  assets/         ← assets copied incrementally to dist/assets/
 
 arcadia.toml      ← site config (title, content_dir, output_dir, port, …)
 embed/            ← optional local template overrides (see arcadia eject)
 
 src/              ← the build tool (Rust)
 dist/             ← generated output (not committed)
+  resources/
+    tufte.css     ← always written from the binary (or embed/ override)
 ```
 
 ---
 
 ## Tufte Features
 
-Arcadia supports two Tufte-specific markdown extensions in posts and fiction chapters:
+Arcadia supports two Tufte-specific markdown extensions in posts, fiction chapters, and slide decks:
 
 **Sidenotes** — numbered, float to the right margin on wide screens:
 
@@ -140,7 +145,7 @@ graph TD
 ```
 ````
 
-Diagrams are supported in posts, fiction chapters, and slide decks. Colors are derived from the page's background and foreground so diagrams blend in on pages with custom color schemes.
+Diagrams are supported in posts, fiction chapters, and slide decks. On fiction and deck pages with custom `background_color` / `font_color` frontmatter, diagram colors are derived from the page colors automatically.
 
 ---
 
@@ -189,6 +194,7 @@ See [HOW_TO_CUSTOMIZE_TEMPLATES.md](HOW_TO_CUSTOMIZE_TEMPLATES.md) for the full 
 | `arcadia new fiction <slug>` | Scaffold a new fiction story with a first chapter |
 | `arcadia new deck <slug>` | Scaffold a new slide deck |
 | `arcadia eject` | Copy all built-in templates into `embed/` for local customisation |
+| `arcadia clean` | Delete the output directory (`dist/` by default) |
 
 ---
 
@@ -200,7 +206,7 @@ All settings are optional. Create `arcadia.toml` in the project root to configur
 title       = "My Site"          # used in page <title> and headings
 description = "A site about …"  # not currently rendered, reserved for future use
 author      = "Your Name"        # not currently rendered, reserved for future use
-base_url    = "https://example.com"  # not currently rendered, reserved for future use
+base_url    = "https://example.com"  # enables RSS feed and sitemap generation
 
 content_dir = "example"          # where to look for posts/, fiction/, decks/, resources/, images/  (default: "example")
 output_dir  = "dist"             # where to write the built site                (default: "dist")
