@@ -9,6 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
 html-escape = "0.2"
 axum = "0.7"
 clap = { version = "4", features = ["derive"] }

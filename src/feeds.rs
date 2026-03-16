@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use chrono::NaiveDate;
 use rss::{ChannelBuilder, ItemBuilder};
 
 use crate::content::{DeckMeta, PostMeta, StoryMeta};
@@ -109,21 +110,11 @@ fn write_feed(
         .with_context(|| format!("write {:?}", output_path))
 }
 
-/// Convert `YYYY-MM-DD` to RFC 2822 (`DD Mon YYYY 00:00:00 +0000`).
+/// Convert `YYYY-MM-DD` to RFC 2822. Returns an empty string on invalid input.
 fn to_rfc2822(date: &str) -> String {
-    const MONTHS: [&str; 12] = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
-    let parts: Vec<&str> = date.splitn(3, '-').collect();
-    if parts.len() != 3 {
-        return date.to_owned();
-    }
-    let month = parts[1]
-        .parse::<usize>()
+    NaiveDate::parse_from_str(date, "%Y-%m-%d")
         .ok()
-        .and_then(|m| MONTHS.get(m.wrapping_sub(1)))
-        .copied()
-        .unwrap_or("Jan");
-    format!("{} {} {} 00:00:00 +0000", parts[2], month, parts[0])
+        .and_then(|d| d.and_hms_opt(0, 0, 0))
+        .map(|dt| dt.and_utc().to_rfc2822())
+        .unwrap_or_default()
 }

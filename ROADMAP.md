@@ -13,43 +13,12 @@
 - **Mermaid 3c** — Per-page frontmatter overrides for `mermaid_node_spacing` / `mermaid_rank_spacing`
 - **Phase 1 cleanup** — `escape_html` → `html-escape`; `copy_dir` consolidation; `f32_field` mermaid helper; `tag_section` deduplication; `write_feed` consolidation
 - **Phase 1.5 integration tests** — 31 CLI tests across 6 modules (`build_posts`, `build_fiction`, `build_decks`, `build_tags`, `build_feeds`, `new_command`); run with `cargo test --test integration`
+- **Item 6 (chrono)** — Replaced hand-rolled `to_rfc2822` in `src/feeds.rs` with `chrono::NaiveDate`; proper validation, no manual string slicing
+- **Item 7 (gray-matter) — skipped** — `gray_matter` (Rust) returns its own `Pod` type and an owned `String` body, not `serde_yaml::Value` and `&str`. Migration would ripple through all callers in `src/content/`. Current `frontmatter.rs` is clean, well-tested, and only 40 lines of logic — not worth the churn.
 
 ---
 
-## Phase 2 — Library swaps (refactoring, no new features)
-
-Items 6 and 7 touch disjoint files and can run in parallel.
-
-### 6. Replace hand-rolled date formatting with `chrono` (`src/feeds.rs`)
-
-`to_rfc2822()` manually parses `YYYY-MM-DD` strings and constructs an RFC 2822 date by string concatenation. It hardcodes the timezone as `+0000`, does no range validation, and silently produces garbage on any non-conforming input. Replace with `chrono`:
-
-```rust
-use chrono::NaiveDate;
-NaiveDate::parse_from_str(date, "%Y-%m-%d")
-    .map(|d| d.and_hms_opt(0, 0, 0).unwrap().and_utc().to_rfc2822())
-    .unwrap_or_default()
-```
-
-Add `chrono = { version = "0.4", default-features = false, features = ["std"] }` to `Cargo.toml`.
-
-**Files:** `src/feeds.rs`, `Cargo.toml`
-**Depends on:** —
-**Can parallelize with:** 7
-**Verify:** `cargo test` passes; RSS feed dates in example site are valid RFC 2822 format
-
-### 7. Replace hand-rolled frontmatter parsing with `gray-matter` (`src/frontmatter.rs`)
-
-The current parser manually scans for `\n---` delimiters with bespoke edge-case handling (empty body, closing delimiter at EOF). The `gray-matter` crate handles all of this robustly and is a near drop-in. Verify how much of `frontmatter.rs` would be deleted before committing — if it's close to 100%, the swap is worthwhile.
-
-**Files:** `src/frontmatter.rs`, `Cargo.toml`
-**Depends on:** —
-**Can parallelize with:** 6
-**Verify:** all existing `frontmatter` tests pass or are replaced by equivalent coverage; `cargo test --test integration` produces identical output
-
----
-
-## Phase 3 — Feature additions
+## Phase 3 — Feature additions (next up)
 
 Items 8 and 9 touch disjoint files and can run in parallel.
 

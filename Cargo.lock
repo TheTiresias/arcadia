@@ -80,6 +80,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "axum",
+ "chrono",
  "clap",
  "futures-util",
  "html-escape",
