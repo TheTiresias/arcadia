@@ -181,7 +181,7 @@ fn inject_dark_style(svg: &str, light_bg: &str, light_fg: &str) -> String {
 
 /// Return `true` when `color` is a dark `#RRGGBB` or `#RGB` hex value.
 /// Non-hex values (e.g. `hsl(...)`) return `false` (safe light-theme fallback).
-fn is_dark(color: &str) -> bool {
+pub(crate) fn is_dark(color: &str) -> bool {
     let (r, g, b) = match parse_hex(color) {
         Some(v) => v,
         None => return false,

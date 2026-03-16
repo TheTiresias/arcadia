@@ -29,6 +29,8 @@ pub fn render(
         Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_FOOTNOTES;
     let parser = Parser::new_ext(&preprocessed, options);
 
+    let dark_bg = bg.map(mermaid::is_dark).unwrap_or(false);
+
     // B3: intercept fenced code blocks for syntax highlighting
     let mut events: Vec<Event> = Vec::new();
     let mut in_code = false;
@@ -46,7 +48,7 @@ pub fn render(
             }
             Event::End(TagEnd::CodeBlock) if in_code => {
                 in_code = false;
-                let highlighted = syntax_highlight(&code_lang, &code_buf);
+                let highlighted = syntax_highlight(&code_lang, &code_buf, dark_bg);
                 events.push(Event::Html(highlighted.into()));
             }
             other if in_code => drop(other),
@@ -73,13 +75,33 @@ pub fn section_wrap(html: &str) -> String {
 
 /// Split raw markdown on `\n---\n` for use in slide decks.
 /// Returns raw markdown chunks (not yet rendered); each chunk is one slide.
+///
+/// `---` lines inside fenced code blocks (``` or ~~~) are ignored so that
+/// YAML and markdown examples inside code blocks don't break slide boundaries.
 pub fn split_slides(input: &str) -> Vec<&str> {
-    input.split("\n---\n").collect()
+    let mut slides = Vec::new();
+    let mut in_fence = false;
+    let mut slide_start = 0;
+    let mut pos = 0;
+
+    for line in input.split_inclusive('\n') {
+        let t = line.trim_end_matches('\n').trim_end_matches('\r');
+        if t.starts_with("```") || t.starts_with("~~~") {
+            in_fence = !in_fence;
+        } else if !in_fence && t == "---" && pos > 0 && line.ends_with('\n') {
+            slides.push(&input[slide_start..pos - 1]);
+            slide_start = pos + line.len();
+        }
+        pos += line.len();
+    }
+
+    slides.push(&input[slide_start..]);
+    slides
 }
 
 // ── Syntax highlighting (B3) ───────────────────────────────────────────────────
 
-fn syntax_highlight(lang: &str, code: &str) -> String {
+fn syntax_highlight(lang: &str, code: &str, dark: bool) -> String {
     use syntect::easy::HighlightLines;
     use syntect::highlighting::ThemeSet;
     use syntect::html::{styled_line_to_highlighted_html, IncludeBackground};
@@ -95,9 +117,10 @@ fn syntax_highlight(lang: &str, code: &str) -> String {
     let syntax = ss
         .find_syntax_by_token(lang)
         .unwrap_or_else(|| ss.find_syntax_plain_text());
+    let theme_name = if dark { "base16-ocean.dark" } else { "InspiredGitHub" };
     let theme = ts
         .themes
-        .get("InspiredGitHub")
+        .get(theme_name)
         .or_else(|| ts.themes.values().next())
         .expect("syntect default themes are non-empty");
 
@@ -337,5 +360,22 @@ mod tests {
     fn split_slides_single_slide() {
         let slides = split_slides("only one slide");
         assert_eq!(slides.len(), 1);
+    }
+
+    #[test]
+    fn split_slides_ignores_dashes_in_fenced_block() {
+        let src = "slide one\n```yaml\n---\nkey: value\n---\n```\n---\nslide two";
+        let slides = split_slides(src);
+        assert_eq!(slides.len(), 2);
+        assert!(slides[0].contains("```yaml"));
+        assert_eq!(slides[1], "slide two");
+    }
+
+    #[test]
+    fn split_slides_ignores_dashes_in_tilde_fence() {
+        let src = "slide one\n~~~\n---\n~~~\n---\nslide two";
+        let slides = split_slides(src);
+        assert_eq!(slides.len(), 2);
+        assert_eq!(slides[1], "slide two");
     }
 }
