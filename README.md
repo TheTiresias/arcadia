@@ -10,22 +10,6 @@ Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmar
 
 ---
 
-## Screenshots
-
-| Home | Post (with sidenotes + diagram) |
-|---|---|
-| ![Home page](docs/screenshots/home.png) | ![Blog post](docs/screenshots/post.png) |
-
-| Fiction table of contents | Slide deck |
-|---|---|
-| ![Fiction ToC](docs/screenshots/fiction-toc.png) | ![Slide deck](docs/screenshots/deck.png) |
-
-| Dark mode |
-|---|
-| ![Dark mode](docs/screenshots/dark-mode.png) |
-
----
-
 ## Getting Started
 
 ```
@@ -63,7 +47,7 @@ Chronological writing. Lives in `example/posts/`.
 arcadia new post <slug>
 ```
 
-See [HOW_TO_WRITE_POSTS.md](HOW_TO_WRITE_POSTS.md) for full details.
+See [How to Write Posts](https://thetiresias.github.io/arcadia/posts/writing-posts.html) for full details.
 
 ### Fiction
 
@@ -73,7 +57,7 @@ Chapter-based long-form writing. Each story is a directory in `example/fiction/`
 arcadia new fiction <slug>
 ```
 
-See [HOW_TO_WRITE_FICTION.md](HOW_TO_WRITE_FICTION.md) for full details.
+See [How to Write Fiction](https://thetiresias.github.io/arcadia/posts/writing-fiction.html) for full details.
 
 ### Slide Decks
 
@@ -83,7 +67,7 @@ Presentation slides from markdown. Lives in `example/decks/`. Slides are separat
 arcadia new deck <slug>
 ```
 
-See [HOW_TO_WRITE_DECKS.md](HOW_TO_WRITE_DECKS.md) for full details.
+See [How to Write Slide Decks](https://thetiresias.github.io/arcadia/posts/writing-decks.html) for full details.
 
 ---
 
@@ -147,7 +131,7 @@ graph TD
 ```
 ````
 
-Diagrams are supported in posts, fiction chapters, and slide decks. On fiction and deck pages with custom `background_color` / `font_color` frontmatter, diagram colors are derived from the page colors automatically.
+Diagrams are supported in posts, fiction chapters, and slide decks. When `background_color` / `font_color` are set in frontmatter, diagram colors are derived from the page colors automatically.
 
 ---
 
@@ -172,15 +156,15 @@ Fiction tags belong to the story, not individual chapters — set them in `story
 
 ## Customising Templates
 
-Arcadia's HTML output is driven by nine templates compiled into the binary. To customise them, run:
+Arcadia's HTML output is driven by ten templates compiled into the binary. To customise them, run:
 
 ```
 arcadia eject
 ```
 
-This writes all nine templates into `embed/` in your project root. Edit any of them and the next build will use your version instead of the built-in one. Files you don't touch continue to use the defaults — you don't need to eject everything to change one template.
+This writes all ten templates into `embed/` in your project root. Edit any of them and the next build will use your version instead of the built-in one. Files you don't touch continue to use the defaults — you don't need to eject everything to change one template.
 
-See [HOW_TO_CUSTOMIZE_TEMPLATES.md](HOW_TO_CUSTOMIZE_TEMPLATES.md) for the full variable reference for each template.
+See [Customising Templates](https://thetiresias.github.io/arcadia/posts/customising-templates.html) for the full variable reference for each template.
 
 ---
 
