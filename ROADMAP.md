@@ -20,49 +20,24 @@
 
 ---
 
-## Phase 4 — Architecture (most disruptive, defer)
+## Next — Demo site on GitHub Pages
 
-These items are high-risk and should not be parallelized with each other. Complete and stabilize one before starting the other.
+Two sequential sub-tasks.
 
-### 10. Template engine — consider replacing with a library
+### 12a. Absorb the HOW_TO docs into the example site
 
-The current engine (plain substitution + `{{#if}}` conditionals) is intentionally minimal. If further templating features are needed — loops, filters, inheritance, whitespace control — replace it with a proper library rather than extending the hand-rolled engine. Good candidates in the Rust ecosystem: `minijinja` (Jinja2-compatible, small and embeddable) or `tera` (Django-style, more fully featured).
+Convert `HOW_TO_WRITE_POSTS.md`, `HOW_TO_WRITE_FICTION.md`, `HOW_TO_WRITE_DECKS.md`, and `HOW_TO_CUSTOMIZE_TEMPLATES.md` into posts in the example site. The example site becomes the canonical reference; the standalone files in the repo root can be removed or replaced with a redirect note pointing to the live site.
 
-**Files:** `src/templates.rs`, `Cargo.toml`, all template callers in `src/content/`
-**Depends on:** all prior phases complete
-**Can parallelize with:** 11 (touches disjoint files, but both are high-risk — serialize instead)
-**Verify:** `cargo test` passes; full example site build produces byte-for-byte identical HTML output compared to the previous engine
+**Files:** `example/posts/`, `HOW_TO_*.md`
+**Depends on:** —
+**Verify:** `cargo build` passes; example site renders all four doc posts correctly
 
-### 11. Mermaid 3d — ET Book font build-time metrics
-
-*Browser display* — likely already correct. The SVGs are embedded inline in the HTML, and inline SVGs inherit `@font-face` rules from the page's CSS. Since `tufte.css` loads ET Book, diagram text should render with ET Book in browsers despite the font not being available at build time.
-
-*Build-time text measurement* — a remaining limitation. The renderer measures glyph widths at build time to size node boxes via `fontdb::Database::load_system_fonts()`. Node box geometry is therefore calculated from system serif metrics rather than ET Book metrics — likely close enough to be invisible in practice, but technically imprecise.
-
-Since `mermaid-rs-renderer` is vendored, the fix can be made directly: add a `pub fn register_font_bytes(data: &[u8])` API to `vendor/mermaid-rs-renderer/src/text_metrics.rs`, then call it with `include_bytes!("../embed/et-book/...")` from `src/mermaid.rs` before rendering.
-
-**Files:** `vendor/mermaid-rs-renderer/src/text_metrics.rs`, `src/mermaid.rs`
-**Depends on:** all prior phases complete
-**Can parallelize with:** 10 (touches disjoint files, but both are high-risk — serialize instead)
-**Verify:** `cargo test` passes; node box widths in rendered SVGs visibly match ET Book glyph metrics
-
----
-
-## 12. Demo site on GitHub Pages
-
-Consolidate the four `HOW_TO_*.md` files into the example site as proper posts or a dedicated docs section, then publish the built `example/dist/` to GitHub Pages so visitors can browse a live Arcadia site.
-
-**12a. Absorb the HOW_TO docs into the example site**
-
-Convert `HOW_TO_WRITE_POSTS.md`, `HOW_TO_WRITE_FICTION.md`, `HOW_TO_WRITE_DECKS.md`, and `HOW_TO_CUSTOMIZE_TEMPLATES.md` into posts. The example site becomes the canonical reference; the standalone files in the repo root can be removed or replaced with a redirect note pointing to the live site.
-
-**12b. GitHub Pages deployment**
+### 12b. GitHub Pages deployment
 
 Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and deploys the output to GitHub Pages. Set `base_url` in `arcadia.toml` to the Pages URL so the sitemap and RSS feed have correct absolute URLs. Update the README to link to the live site.
 
-**Files:** `example/`, `.github/workflows/pages.yml`, `README.md`
-**Depends on:** —
-**Can parallelize with:** 10, 11 (content and infra work, entirely disjoint files)
+**Files:** `.github/workflows/pages.yml`, `arcadia.toml`, `README.md`
+**Depends on:** 12a (so the deployed site has full content)
 **Verify:** GitHub Pages site is live and browsable; RSS feed and sitemap contain correct absolute URLs
 
 ---
@@ -70,3 +45,6 @@ Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and de
 ## Suggestions
 
 Opportunistic improvements discovered during development. Not yet scheduled.
+
+- **Template engine** — The current engine (plain substitution + `{{#if}}` conditionals) is intentionally minimal. If loops, filters, or inheritance are ever needed, consider `minijinja` (Jinja2-compatible) or `tera` (Django-style). Not worth doing speculatively.
+- **Mermaid ET Book font metrics** — The renderer measures glyph widths at build time using system fonts, not ET Book. Node box geometry is therefore slightly imprecise, though invisible in practice (browsers inherit the correct font from the page CSS). Fix would require adding a `register_font_bytes` API to the vendored renderer. Only worth doing if node sizing becomes visibly wrong.
