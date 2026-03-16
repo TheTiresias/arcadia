@@ -22,15 +22,9 @@
 
 ## Next — Demo site on GitHub Pages
 
-Two sequential sub-tasks.
+### 12a. Absorb the HOW_TO docs into the example site ✓
 
-### 12a. Absorb the HOW_TO docs into the example site
-
-Convert `HOW_TO_WRITE_POSTS.md`, `HOW_TO_WRITE_FICTION.md`, `HOW_TO_WRITE_DECKS.md`, and `HOW_TO_CUSTOMIZE_TEMPLATES.md` into posts in the example site. The example site becomes the canonical reference; the standalone files in the repo root can be removed or replaced with a redirect note pointing to the live site.
-
-**Files:** `example/posts/`, `HOW_TO_*.md`
-**Depends on:** —
-**Verify:** `cargo build` passes; example site renders all four doc posts correctly
+Converted all four `HOW_TO_*.md` files into posts in `example/posts/` (dated 2026-01-01 through 2026-01-04, tagged `docs`). The standalone root files can be removed once the Pages site is live and a redirect URL is known.
 
 ### 12b. GitHub Pages deployment
 
