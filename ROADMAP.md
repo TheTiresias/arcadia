@@ -44,7 +44,5 @@ Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and de
 
 ## Suggestions
 
-Opportunistic improvements discovered during development. Not yet scheduled.
-
 - **Template engine** — The current engine (plain substitution + `{{#if}}` conditionals) is intentionally minimal. If loops, filters, or inheritance are ever needed, consider `minijinja` (Jinja2-compatible) or `tera` (Django-style). Not worth doing speculatively.
 - **Mermaid ET Book font metrics** — The renderer measures glyph widths at build time using system fonts, not ET Book. Node box geometry is therefore slightly imprecise, though invisible in practice (browsers inherit the correct font from the page CSS). Fix would require adding a `register_font_bytes` API to the vendored renderer. Only worth doing if node sizing becomes visibly wrong.
