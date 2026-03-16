@@ -1,5 +1,11 @@
 # Roadmap
 
+## Blocked
+
+- **Release workflow (PAT)** — The GitHub Actions release workflow fails due to a PAT/permissions issue when uploading release assets via `softprops/action-gh-release`. Build and binary packaging steps succeed; only the upload step is broken. Pinned — do not attempt to fix until PAT situation is resolved.
+
+---
+
 ## Done
 
 - **Screenshots** — Added to README (home, post with mermaid diagram, fiction ToC, slide deck)
