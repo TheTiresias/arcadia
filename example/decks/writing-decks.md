@@ -13,9 +13,12 @@ Slide decks live in `decks/`. Each file is a single deck.
 arcadia new deck <slug>
 ```
 
-Navigate with **arrow keys**, **space**, or the **← →** buttons below.
+## Navigation
 
-Navigate with **arrow keys**, **space**, or the buttons below.
+- **Arrow keys** — left / right
+- **Spacebar** — advance
+- **← / → buttons** — on-screen controls
+- **1 / N counter** — tracks position
 
 ---
 
@@ -56,15 +59,6 @@ More content.
 ```
 
 No limit on the number of slides.
-
----
-
-## Navigation
-
-- **Arrow keys** — left / right
-- **Spacebar** — advance
-- **← / → buttons** — on-screen controls
-- **1 / N counter** — tracks position
 
 ---
 
