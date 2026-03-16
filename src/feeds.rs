@@ -27,15 +27,8 @@ pub fn build(out_dir: &Path, posts: &[PostMeta], site_title: &str, base_url: &st
         })
         .collect();
 
-    let channel = ChannelBuilder::default()
-        .title(site_title.to_owned())
-        .link(base.to_owned())
-        .description(site_title.to_owned())
-        .items(items)
-        .build();
-
-    fs::write(out_dir.join("feed.xml"), channel.to_string()).context("write feed.xml")?;
-    Ok(())
+    write_feed(site_title, site_title, base, &out_dir.join("feed.xml"), items)
+        .context("write feed.xml")
 }
 
 pub fn build_fiction(
@@ -60,16 +53,14 @@ pub fn build_fiction(
         })
         .collect();
 
-    let channel = ChannelBuilder::default()
-        .title(format!("{} — Fiction", site_title))
-        .link(format!("{}/fiction.html", base))
-        .description(format!("{} fiction", site_title))
-        .items(items)
-        .build();
-
-    fs::write(out_dir.join("fiction-feed.xml"), channel.to_string())
-        .context("write fiction-feed.xml")?;
-    Ok(())
+    write_feed(
+        &format!("{} — Fiction", site_title),
+        &format!("{} fiction", site_title),
+        &format!("{}/fiction.html", base),
+        &out_dir.join("fiction-feed.xml"),
+        items,
+    )
+    .context("write fiction-feed.xml")
 }
 
 pub fn build_decks(
@@ -91,16 +82,31 @@ pub fn build_decks(
         })
         .collect();
 
+    write_feed(
+        &format!("{} — Decks", site_title),
+        &format!("{} slide decks", site_title),
+        &format!("{}/decks.html", base),
+        &out_dir.join("decks-feed.xml"),
+        items,
+    )
+    .context("write decks-feed.xml")
+}
+
+fn write_feed(
+    title: &str,
+    description: &str,
+    link: &str,
+    output_path: &Path,
+    items: Vec<rss::Item>,
+) -> Result<()> {
     let channel = ChannelBuilder::default()
-        .title(format!("{} — Decks", site_title))
-        .link(format!("{}/decks.html", base))
-        .description(format!("{} slide decks", site_title))
+        .title(title.to_owned())
+        .link(link.to_owned())
+        .description(description.to_owned())
         .items(items)
         .build();
-
-    fs::write(out_dir.join("decks-feed.xml"), channel.to_string())
-        .context("write decks-feed.xml")?;
-    Ok(())
+    fs::write(output_path, channel.to_string())
+        .with_context(|| format!("write {:?}", output_path))
 }
 
 /// Convert `YYYY-MM-DD` to RFC 2822 (`DD Mon YYYY 00:00:00 +0000`).

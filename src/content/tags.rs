@@ -70,38 +70,9 @@ pub fn build(
     for (slug, entry) in &map {
         let mut items = String::new();
 
-        if !entry.posts.is_empty() {
-            items.push_str("<h2>Posts</h2>\n<ul>\n");
-            for (ps, pt) in &entry.posts {
-                items.push_str(&format!(
-                    "  <li><a href=\"../posts/{}.html\">{}</a></li>\n",
-                    ps, pt
-                ));
-            }
-            items.push_str("</ul>\n");
-        }
-
-        if !entry.stories.is_empty() {
-            items.push_str("<h2>Fiction</h2>\n<ul>\n");
-            for (ss, st) in &entry.stories {
-                items.push_str(&format!(
-                    "  <li><a href=\"../fiction/{}/index.html\">{}</a></li>\n",
-                    ss, st
-                ));
-            }
-            items.push_str("</ul>\n");
-        }
-
-        if !entry.decks.is_empty() {
-            items.push_str("<h2>Decks</h2>\n<ul>\n");
-            for (ds, dt) in &entry.decks {
-                items.push_str(&format!(
-                    "  <li><a href=\"../decks/{}.html\">{}</a></li>\n",
-                    ds, dt
-                ));
-            }
-            items.push_str("</ul>\n");
-        }
+        items.push_str(&tag_section("Posts", &entry.posts, "posts", ".html"));
+        items.push_str(&tag_section("Fiction", &entry.stories, "fiction", "/index.html"));
+        items.push_str(&tag_section("Decks", &entry.decks, "decks", ".html"));
 
         let html = templates::render(
             &tmpl.tag_page,
@@ -148,4 +119,19 @@ pub fn build(
         .with_context(|| format!("write {:?}", index_path))?;
 
     Ok(())
+}
+
+fn tag_section(label: &str, items: &[(String, String)], url_prefix: &str, url_suffix: &str) -> String {
+    if items.is_empty() {
+        return String::new();
+    }
+    let mut out = format!("<h2>{}</h2>\n<ul>\n", label);
+    for (slug, title) in items {
+        out.push_str(&format!(
+            "  <li><a href=\"../{}/{}{}\">{}</a></li>\n",
+            url_prefix, slug, url_suffix, title
+        ));
+    }
+    out.push_str("</ul>\n");
+    out
 }

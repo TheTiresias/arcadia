@@ -107,20 +107,13 @@ fn syntax_highlight(lang: &str, code: &str) -> String {
         match h.highlight_line(line, ss) {
             Ok(ranges) => match styled_line_to_highlighted_html(&ranges, IncludeBackground::No) {
                 Ok(html) => out.push_str(&html),
-                Err(_) => out.push_str(&escape_html(line)),
+                Err(_) => out.push_str(&html_escape::encode_text(line)),
             },
-            Err(_) => out.push_str(&escape_html(line)),
+            Err(_) => out.push_str(&html_escape::encode_text(line)),
         }
     }
     out.push_str("</code></pre>");
     out
-}
-
-fn escape_html(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
 }
 
 // ── Heading anchors (B2) ───────────────────────────────────────────────────────

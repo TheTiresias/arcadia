@@ -3,7 +3,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-use super::{body_style, render_tag_pills, str_field, tags_field, DeckMeta};
+use super::{body_style, f32_field, render_tag_pills, str_field, tags_field, DeckMeta};
 use crate::templates::{self, Templates};
 use crate::{frontmatter, markdown};
 
@@ -35,8 +35,8 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Dec
         let bg_color = str_field(&meta, "background_color");
         let fg_color = str_field(&meta, "font_color");
         let bstyle = body_style(&meta);
-        let mermaid_node_spacing = meta.get("mermaid_node_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
-        let mermaid_rank_spacing = meta.get("mermaid_rank_spacing").and_then(|v| v.as_f64()).map(|v| v as f32);
+        let mermaid_node_spacing = f32_field(&meta, "mermaid_node_spacing");
+        let mermaid_rank_spacing = f32_field(&meta, "mermaid_rank_spacing");
 
         let slug = path
             .file_stem()

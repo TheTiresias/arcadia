@@ -35,6 +35,10 @@ pub(crate) fn str_field(v: &Value, key: &str) -> Option<String> {
     v.get(key)?.as_str().map(|s| s.to_owned())
 }
 
+pub(crate) fn f32_field(v: &Value, key: &str) -> Option<f32> {
+    v.get(key).and_then(|v| v.as_f64()).map(|v| v as f32)
+}
+
 pub(crate) fn tags_field(v: &Value) -> Vec<String> {
     v.get("tags")
         .and_then(|t| t.as_sequence())

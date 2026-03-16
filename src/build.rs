@@ -103,7 +103,7 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
 
     // 8. Copy assets/ → dist/assets/ (incremental: skip unchanged files)
-    copy_assets(&src.join("assets"), &out.join("assets"))?;
+    copy_dir(&src.join("assets"), &out.join("assets"), true)?;
 
     let elapsed_ms = start.elapsed().as_millis();
     println!(
@@ -205,50 +205,29 @@ fn generate_index(
     Ok(())
 }
 
-/// Recursively copy `src` to `dst`, skipping files whose destination is
-/// already at least as new as the source (incremental build).
-fn copy_assets(src: &Path, dst: &Path) -> Result<()> {
+fn copy_dir_if_exists(src: &Path, dst: &Path) -> Result<()> {
     if !src.exists() {
         return Ok(());
     }
+    copy_dir(src, dst, false)
+}
+
+fn copy_dir(src: &Path, dst: &Path, incremental: bool) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create dir {:?}", dst))?;
     for entry in fs::read_dir(src).with_context(|| format!("read dir {:?}", src))? {
         let entry = entry?;
         let src_path = entry.path();
         let dst_path = dst.join(entry.file_name());
         if src_path.is_dir() {
-            copy_assets(&src_path, &dst_path)?;
+            copy_dir(&src_path, &dst_path, incremental)?;
         } else {
-            if dst_path.exists() {
+            if incremental && dst_path.exists() {
                 let src_mtime = fs::metadata(&src_path)?.modified()?;
                 let dst_mtime = fs::metadata(&dst_path)?.modified()?;
                 if dst_mtime >= src_mtime {
                     continue;
                 }
             }
-            fs::copy(&src_path, &dst_path)
-                .with_context(|| format!("copy {:?} → {:?}", src_path, dst_path))?;
-        }
-    }
-    Ok(())
-}
-
-fn copy_dir_if_exists(src: &Path, dst: &Path) -> Result<()> {
-    if !src.exists() {
-        return Ok(());
-    }
-    copy_dir_recursive(src, dst)
-}
-
-fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
-    fs::create_dir_all(dst).with_context(|| format!("create dir {:?}", dst))?;
-    for entry in fs::read_dir(src).with_context(|| format!("read dir {:?}", src))? {
-        let entry = entry?;
-        let src_path = entry.path();
-        let dst_path = dst.join(entry.file_name());
-        if src_path.is_dir() {
-            copy_dir_recursive(&src_path, &dst_path)?;
-        } else {
             fs::copy(&src_path, &dst_path)
                 .with_context(|| format!("copy {:?} → {:?}", src_path, dst_path))?;
         }
