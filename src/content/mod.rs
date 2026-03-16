@@ -21,6 +21,7 @@ pub struct StoryMeta {
     pub slug: String,
     pub description: String,
     pub chapter_count: usize,
+    pub chapter_slugs: Vec<String>,
     pub tags: Vec<String>,
 }
 

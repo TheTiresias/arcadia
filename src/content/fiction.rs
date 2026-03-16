@@ -193,6 +193,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, tmpl: &Templates) -> Result<Vec<Sto
             slug: story_slug,
             description,
             chapter_count: n,
+            chapter_slugs: chapters.iter().map(|c| c.slug.clone()).collect(),
             tags,
         });
     }

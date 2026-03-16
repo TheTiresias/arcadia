@@ -15,36 +15,8 @@
 - **Phase 1.5 integration tests** — 31 CLI tests across 6 modules (`build_posts`, `build_fiction`, `build_decks`, `build_tags`, `build_feeds`, `new_command`); run with `cargo test --test integration`
 - **Item 6 (chrono)** — Replaced hand-rolled `to_rfc2822` in `src/feeds.rs` with `chrono::NaiveDate`; proper validation, no manual string slicing
 - **Item 7 (gray-matter) — skipped** — `gray_matter` (Rust) returns its own `Pod` type and an owned `String` body, not `serde_yaml::Value` and `&str`. Migration would ripple through all callers in `src/content/`. Current `frontmatter.rs` is clean, well-tested, and only 40 lines of logic — not worth the churn.
-
----
-
-## Phase 3 — Feature additions (next up)
-
-Items 8 and 9 touch disjoint files and can run in parallel.
-
-### 8. Custom page colors for posts and decks (`src/content/posts.rs`, `src/content/decks.rs`, `embed/post.html`, `embed/slide-deck.html`)
-
-Fiction pages already support `background_color` and `font_color` frontmatter fields that apply an inline style to `<body>`. The `body_style()` helper in `src/content/mod.rs` that generates this style is already written and shared — posts and decks simply don't call it. Extend both content types to support the same fields:
-
-- In `posts.rs`: extract `background_color` / `font_color` from frontmatter using the existing `body_style()` helper, pass the result to the template renderer as `{{body_style}}`
-- In `decks.rs`: same extraction and pass-through
-- In `embed/post.html` and `embed/slide-deck.html`: add `{{body_style}}` to the `<body>` opening tag, matching the pattern already used in `embed/chapter.html` and `embed/story-toc.html`
-
-For the Mermaid renderer, `bg` and `fg` should also be forwarded when rendering markdown so diagrams match the page colors, as is already done for fiction chapters.
-
-**Files:** `src/content/posts.rs`, `src/content/decks.rs`, `embed/post.html`, `embed/slide-deck.html`
-**Depends on:** —
-**Can parallelize with:** 9
-**Verify:** `cargo test` passes; a post with `background_color: "#1a1a1a"` and `font_color: "#eeeeee"` renders with the correct inline body style; mermaid diagrams on that post use matching colors
-
-### 9. Sitemap completeness (`src/sitemap.rs`, `src/content/fiction.rs`)
-
-The sitemap includes posts, story table-of-contents pages, and deck pages, but omits fiction chapter pages, tag pages, and the listing indexes (`fiction.html`, `decks.html`, `tags.html`). To include chapters, `fiction::build` needs to return chapter slugs alongside `StoryMeta` so `sitemap::build` can enumerate them. Add `<lastmod>` tags derived from the `date` frontmatter field where available.
-
-**Files:** `src/sitemap.rs`, `src/content/fiction.rs`, `src/build.rs`
-**Depends on:** —
-**Can parallelize with:** 8
-**Verify:** `cargo test` passes; `example/dist/sitemap.xml` contains URLs for chapter pages, tag pages, and listing index pages; entries with a date field include a `<lastmod>` tag
+- **Item 8 (post colors)** — `background_color` / `font_color` frontmatter now supported on posts; `body_style()` and bg/fg forwarded to mermaid renderer. Decks already had this. Template updated (`embed/post.html`).
+- **Item 9 (sitemap completeness)** — Sitemap now includes fiction chapter pages, `fiction.html` / `decks.html` / `tags.html` listing indexes, tag pages, and `<lastmod>` on posts with a date. Added `chapter_slugs` to `StoryMeta`.
 
 ---
 

@@ -3,7 +3,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-use super::{f32_field, render_tag_pills, str_field, tags_field, PostMeta};
+use super::{body_style, f32_field, render_tag_pills, str_field, tags_field, PostMeta};
 use crate::templates::{self, Templates};
 use crate::{frontmatter, markdown};
 
@@ -38,6 +38,9 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
         let date = str_field(&meta, "date").unwrap_or_default();
         let subtitle = str_field(&meta, "subtitle");
         let tags = tags_field(&meta);
+        let bg_color = str_field(&meta, "background_color");
+        let fg_color = str_field(&meta, "font_color");
+        let bstyle = body_style(&meta);
         let mermaid_node_spacing = f32_field(&meta, "mermaid_node_spacing");
         let mermaid_rank_spacing = f32_field(&meta, "mermaid_rank_spacing");
 
@@ -48,7 +51,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
             .to_owned();
 
         let content = markdown::section_wrap(
-            &markdown::render(body, None, None, mermaid_node_spacing, mermaid_rank_spacing)
+            &markdown::render(body, bg_color.as_deref(), fg_color.as_deref(), mermaid_node_spacing, mermaid_rank_spacing)
                 .with_context(|| format!("render {:?}", path))?,
         );
 
@@ -70,6 +73,7 @@ pub fn build(src_dir: &Path, out_dir: &Path, drafts: bool, tmpl: &Templates) -> 
             &[
                 ("title", &title),
                 ("root", ".."),
+                ("body_style", &bstyle),
                 ("subtitle", &subtitle_html),
                 ("subtitle_text", &subtitle_text),
                 ("date", &date_html),
