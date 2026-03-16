@@ -67,7 +67,7 @@ Presentation slides from markdown. Lives in `example/decks/`. Slides are separat
 arcadia new deck <slug>
 ```
 
-See [How to Write Slide Decks](https://thetiresias.github.io/arcadia/posts/writing-decks.html) for full details.
+See [How to Write Slide Decks](https://thetiresias.github.io/arcadia/decks/writing-decks.html) for full details.
 
 ---
 
