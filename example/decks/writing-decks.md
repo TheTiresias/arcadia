@@ -13,6 +13,8 @@ Slide decks live in `decks/`. Each file is a single deck.
 arcadia new deck <slug>
 ```
 
+Navigate with **arrow keys**, **space**, or the **← →** buttons below.
+
 Navigate with **arrow keys**, **space**, or the buttons below.
 
 ---
