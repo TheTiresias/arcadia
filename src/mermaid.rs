@@ -23,9 +23,11 @@ pub fn preprocess(
     let background = bg.unwrap_or("#fffff8");
     let text       = fg.unwrap_or("#111111");
 
-    let mut layout = LayoutConfig::default();
     // §3b: improved defaults for back-edge routing
-    layout.node_spacing = node_spacing.unwrap_or(80.0);
+    let mut layout = LayoutConfig {
+        node_spacing: node_spacing.unwrap_or(80.0),
+        ..LayoutConfig::default()
+    };
     if let Some(rs) = rank_spacing {
         layout.rank_spacing = rs;
     }

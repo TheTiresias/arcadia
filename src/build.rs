@@ -35,6 +35,7 @@ impl BuildConfig {
     }
 }
 
+#[allow(dead_code)]
 pub struct BuildSummary {
     pub post_count: usize,
     pub story_count: usize,

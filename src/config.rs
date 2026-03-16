@@ -5,6 +5,7 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default)]
+#[allow(dead_code)]
 pub struct SiteConfig {
     pub title:       Option<String>,
     pub description: Option<String>,

@@ -33,8 +33,7 @@ pub fn parse(input: &str) -> Result<(Value, &str), serde_yaml::Error> {
 /// not matched, preventing accidental early termination.
 fn find_close(s: &str) -> Option<(usize, usize)> {
     // Case 1: closing delimiter at position 0 (empty frontmatter).
-    if s.starts_with("---") {
-        let after = &s[3..];
+    if let Some(after) = s.strip_prefix("---") {
         if after.is_empty() {
             return Some((0, 3));
         }
