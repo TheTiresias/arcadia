@@ -26,13 +26,9 @@
 
 Converted all four `HOW_TO_*.md` files into posts in `example/posts/` (dated 2026-01-01 through 2026-01-04, tagged `docs`). The standalone root files can be removed once the Pages site is live and a redirect URL is known.
 
-### 12b. GitHub Pages deployment
+### 12b. GitHub Pages deployment ✓
 
-Add a GitHub Actions workflow that runs `arcadia build` on push to `main` and deploys the output to GitHub Pages. Set `base_url` in `arcadia.toml` to the Pages URL so the sitemap and RSS feed have correct absolute URLs. Update the README to link to the live site.
-
-**Files:** `.github/workflows/pages.yml`, `arcadia.toml`, `README.md`
-**Depends on:** 12a (so the deployed site has full content)
-**Verify:** GitHub Pages site is live and browsable; RSS feed and sitemap contain correct absolute URLs
+Added `.github/workflows/pages.yml` — builds arcadia from source, runs `arcadia build`, deploys `dist/` to Pages on every push to `main`. Set `base_url = "https://thetiresias.github.io/arcadia"` in `arcadia.toml` (force-committed over gitignore). Added live demo link to README.
 
 ---
 

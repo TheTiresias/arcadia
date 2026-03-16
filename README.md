@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/TheTiresias/arcadia/actions/workflows/ci.yml/badge.svg)](https://github.com/TheTiresias/arcadia/actions/workflows/ci.yml)
 
+**[Live demo →](https://thetiresias.github.io/arcadia)**
+
 A Tufte-style static site generator for writing. Supports blog posts, long-form fiction, and slide decks — all from plain markdown.
 
 Built with [Tufte CSS](https://edwardtufte.github.io/tufte-css/), [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark), [mermaid-rs-renderer](https://github.com/1jehuang/mermaid-rs-renderer), and [toml](https://github.com/toml-rs/toml). No framework, no bundler — just a Rust binary.
