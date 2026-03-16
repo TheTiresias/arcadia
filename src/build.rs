@@ -84,7 +84,7 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     }
 
     // 6. Copy resources/ → dist/resources/
-    copy_dir_if_exists(&src.join("resources"), &out.join("resources"))?;
+    copy_dir_if_exists(&src.join("resources"), &out.join("resources"), false)?;
 
     // Write tufte.css from binary or ejected template (always wins over resources/).
     // If the user has run `arcadia eject`, embed/tufte.css is their customised version;
@@ -100,10 +100,10 @@ pub fn build(config: &BuildConfig) -> Result<BuildSummary> {
     fs::write(resources_out.join("tufte.css"), tufte_content).context("write tufte.css")?;
 
     // 7. Copy images/ → dist/images/
-    copy_dir_if_exists(&src.join("images"), &out.join("images"))?;
+    copy_dir_if_exists(&src.join("images"), &out.join("images"), false)?;
 
     // 8. Copy assets/ → dist/assets/ (incremental: skip unchanged files)
-    copy_dir(&src.join("assets"), &out.join("assets"), true)?;
+    copy_dir_if_exists(&src.join("assets"), &out.join("assets"), true)?;
 
     let elapsed_ms = start.elapsed().as_millis();
     println!(
@@ -205,11 +205,11 @@ fn generate_index(
     Ok(())
 }
 
-fn copy_dir_if_exists(src: &Path, dst: &Path) -> Result<()> {
+fn copy_dir_if_exists(src: &Path, dst: &Path, incremental: bool) -> Result<()> {
     if !src.exists() {
         return Ok(());
     }
-    copy_dir(src, dst, false)
+    copy_dir(src, dst, incremental)
 }
 
 fn copy_dir(src: &Path, dst: &Path, incremental: bool) -> Result<()> {
