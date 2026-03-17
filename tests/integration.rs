@@ -16,5 +16,11 @@ mod build_tags;
 #[path = "integration/build_feeds.rs"]
 mod build_feeds;
 
+#[path = "integration/build_assets.rs"]
+mod build_assets;
+
+#[path = "integration/build_lightbox.rs"]
+mod build_lightbox;
+
 #[path = "integration/new_command.rs"]
 mod new_command;

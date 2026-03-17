@@ -112,6 +112,8 @@ Here is a sentence.^[This is a sidenote.] Prose continues.
 Here is a sentence.>[This is a margin note.] Prose continues.
 ```
 
+Images inside sidenotes and margin notes are automatically wrapped with a CSS-only lightbox — click to expand, click the backdrop to dismiss. No JavaScript required.
+
 A `---` in posts and fiction chapters becomes a `<section>` break, which is the structural unit Tufte CSS expects.
 
 ---

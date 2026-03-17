@@ -40,6 +40,7 @@ The binary exposes five CLI commands (`new`, `build`, `serve`, `eject`, `clean`)
 3. pulldown-cmark — renders markdown to HTML
 4. `syntax_highlight` — intercepts fenced code blocks, replaces with syntect output
 5. `add_heading_anchors` — adds `id` and `#` anchor links to every heading
+6. `add_sidenote_lightboxes` — post-processes rendered HTML; wraps `<img>` tags inside `.sidenote`/`.marginnote` spans with a CSS-only `:target` lightbox trigger, and appends the corresponding overlay after the span
 
 ### Templates (`src/templates.rs` + `embed/`)
 

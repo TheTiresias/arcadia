@@ -403,6 +403,40 @@ h6:hover .heading-anchor {
     visibility: visible;
 }
 
+/* Sidenote / margin-note image lightbox (CSS-only, :target) */
+.lightbox-trigger {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.85);
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox:target {
+    display: flex;
+}
+
+.lightbox-close {
+    position: absolute;
+    inset: 0;
+    cursor: zoom-out;
+}
+
+.lightbox > img {
+    position: relative;
+    z-index: 1;
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+
 @media (max-width: 760px) {
     body {
         width: 84%;

@@ -61,6 +61,10 @@ pub fn render(
 
     // B2: add id + anchor link to every heading
     let output = add_heading_anchors(&output);
+
+    // B1: wrap images inside sidenotes/marginnotes with CSS-only lightbox
+    let output = add_sidenote_lightboxes(&output);
+
     Ok(output)
 }
 
@@ -160,6 +164,71 @@ fn add_heading_anchors(html: &str) -> String {
             )
         })
         .into_owned()
+}
+
+// ── Sidenote image lightboxes (B1) ────────────────────────────────────────────
+
+/// Wrap `<img>` tags inside `.sidenote` and `.marginnote` spans with a
+/// CSS-only `:target` lightbox.
+///
+/// For each image found, the img is replaced with a trigger link and a
+/// corresponding overlay span is appended immediately after the closing
+/// `</span>` of the sidenote.
+fn add_sidenote_lightboxes(html: &str) -> String {
+    static SPAN_RE: OnceLock<Regex> = OnceLock::new();
+    static IMG_RE: OnceLock<Regex> = OnceLock::new();
+
+    let span_re = SPAN_RE.get_or_init(|| {
+        Regex::new(r#"(?s)<span class="(sidenote|marginnote)">(.*?)</span>"#).unwrap()
+    });
+    let img_re = IMG_RE.get_or_init(|| Regex::new(r#"<img([^>]*)>"#).unwrap());
+
+    let mut counter = 0usize;
+    let mut result = String::with_capacity(html.len() + 512);
+    let mut last = 0;
+
+    for span_cap in span_re.captures_iter(html) {
+        let span_match = span_cap.get(0).unwrap();
+        let class = &span_cap[1];
+        let inner = &span_cap[2];
+
+        if !img_re.is_match(inner) {
+            continue;
+        }
+
+        result.push_str(&html[last..span_match.start()]);
+        result.push_str(&format!(r#"<span class="{class}">"#));
+
+        let mut overlays = String::new();
+        let mut inner_last = 0;
+
+        for img_cap in img_re.captures_iter(inner) {
+            let img_match = img_cap.get(0).unwrap();
+            counter += 1;
+            let id = format!("lb-img-{counter}");
+            let img_tag = img_match.as_str();
+
+            result.push_str(&inner[inner_last..img_match.start()]);
+            result.push_str(&format!(
+                "<a href=\"#{}\" class=\"lightbox-trigger\">{}</a>",
+                id, img_tag
+            ));
+            overlays.push_str(&format!(
+                "<span id=\"{}\" class=\"lightbox\"><a href=\"#_\" class=\"lightbox-close\"></a>{}</span>",
+                id, img_tag
+            ));
+
+            inner_last = img_match.end();
+        }
+
+        result.push_str(&inner[inner_last..]);
+        result.push_str("</span>");
+        result.push_str(&overlays);
+        last = span_match.end();
+    }
+
+    result.push_str(&html[last..]);
+    result
 }
 
 // ── Pre-processing ────────────────────────────────────────────────────────────
