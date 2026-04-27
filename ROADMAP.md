@@ -8,6 +8,7 @@
 
 ## Done
 
+- **Mermaid vendor removal** — Removed vendored `vendor/mermaid-rs-renderer/` and `[patch]` override. Switched to upstream `branch = "master"` which includes the directed-cycle `tiny_graph` fix (issue #46).
 - **Screenshots** — Added to README (home, post with mermaid diagram, fiction ToC, slide deck)
 - **Mermaid 3b** — Back-edge routing overlap fixed (`node_spacing = 80.0`, `occupancy_weight = 2.5`)
 - **Mermaid 3c** — Per-page frontmatter overrides for `mermaid_node_spacing` / `mermaid_rank_spacing`
@@ -35,5 +36,4 @@ Added `.github/workflows/pages.yml` — builds arcadia from source, runs `arcadi
 ## Suggestions
 
 - **Template engine** — The current engine (plain substitution + `{{#if}}` conditionals) is intentionally minimal. If loops, filters, or inheritance are ever needed, consider `minijinja` (Jinja2-compatible) or `tera` (Django-style). Not worth doing speculatively.
-- **Mermaid ET Book font metrics** — The renderer measures glyph widths at build time using system fonts, not ET Book. Node box geometry is therefore slightly imprecise, though invisible in practice (browsers inherit the correct font from the page CSS). Fix would require adding a `register_font_bytes` API to the vendored renderer. Only worth doing if node sizing becomes visibly wrong.
-- **Mermaid upstream back-edge fix** — Our vendor patch fixes cyclic graph routing (OODA loop layout). Track [mermaid-rs-renderer#46](https://github.com/1jehuang/mermaid-rs-renderer/issues/46) for an upstream resolution. If/when it lands, remove the vendor patch and point back to the upstream crate.
+- **Mermaid ET Book font metrics** — The renderer measures glyph widths at build time using system fonts, not ET Book. Node box geometry is therefore slightly imprecise, though invisible in practice (browsers inherit the correct font from the page CSS). Fix would require adding a `register_font_bytes` API upstream. Only worth doing if node sizing becomes visibly wrong.

@@ -20,6 +20,13 @@ flowchart LR
     Write --> Build --> Publish
 ```
 
+Directed cycles work too — the OODA loop:
+
+```mermaid
+flowchart LR
+    Observe --> Orient --> Decide --> Act --> Observe
+```
+
 ---
 
 ## Structure
